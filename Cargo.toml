@@ -1,5 +1,5 @@
 [package]
-name = "ThumbnailerCLI"
+name = "thumbnailer_cli"
 version = "0.1.0"
 authors = ["The Thumbnailer Developers <thumbnailer@dieterle.io>"]
 edition = "2018"

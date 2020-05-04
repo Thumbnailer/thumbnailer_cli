@@ -1,5 +1,5 @@
-# ThumbnailerCLI
+# Thumbnailer CLI
 
-A simple CLI wrapper around the [Thumbnailer](https://github.com/Thumbnailer/Thumbnailer) rust library.
+A simple CLI wrapper around the [thumbnailer](https://github.com/Thumbnailer/thumbnailer) rust library.
 
 **Still WIP**
