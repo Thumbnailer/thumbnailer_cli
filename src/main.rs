@@ -5,7 +5,15 @@ extern crate image;
 
 //mod generic_thumbnail;
 
-use clap::{App, Arg, SubCommand};
+use clap::{App, Arg};
+
+use crate::generic::{CropConfig, FlipOrientation, ResampleFilter, ResizeSize};
+pub use crate::generic::GenericThumbnail;
+pub use crate::thumbnail::SingleThumbnail;
+pub use crate::thumbnail::StaticThumbnail;
+
+mod generic;
+mod thumbnail;
 
 const FUNC_BLUR: &str = "blur";
 const FUNC_BRIGHTEN: &str = "brighten";
@@ -40,10 +48,22 @@ struct Blur {
     sigma: f32,
 }
 
+impl CommandTrait for Blur {
+    fn execute(&self, image: &mut dyn GenericThumbnail) {
+        GenericThumbnail::blur(image, self.sigma);
+    }
+}
+
 /// brighten
 struct Brighten {
     index: u32,
     value: i32,
+}
+
+impl CommandTrait for Brighten {
+    fn execute(&self, image: &mut dyn GenericThumbnail) {
+        GenericThumbnail::brighten(image, self.value);
+    }
 }
 
 /// huerotate
@@ -52,34 +72,48 @@ struct Huerotate {
     degree: i32,
 }
 
+impl CommandTrait for Huerotate {
+    fn execute(&self, image: &mut dyn GenericThumbnail) {
+        GenericThumbnail::huerotate(image, self.degree);
+    }
+}
+
 /// Contrast
 struct Contrast {
     index: u32,
     value: f32,
 }
 
-/// crop
-#[derive(Debug)]
-enum CropConfig {
-    Box(u32, u32, u32, u32),
-    Ratio(f32, f32),
+impl CommandTrait for Contrast {
+    fn execute(&self, image: &mut dyn GenericThumbnail) {
+        GenericThumbnail::contrast(image, self.value);
+    }
 }
+
+/// crop
 
 struct Crop {
     index: u32,
     config: CropConfig,
 }
 
-/// flip
-#[derive(Debug)]
-enum FlipOrientation {
-    Vertical,
-    Horizontal,
+impl CommandTrait for Crop {
+    fn execute(&self, image: &mut dyn GenericThumbnail) {
+        GenericThumbnail::crop(image, self.config);
+    }
 }
+
+/// flip
 
 struct Flip {
     index: u32,
     orientation: FlipOrientation,
+}
+
+impl CommandTrait for Flip {
+    fn execute(&self, image: &mut dyn GenericThumbnail) {
+        GenericThumbnail::flip(image, self.orientation);
+    }
 }
 
 /// invert
@@ -87,24 +121,35 @@ struct Invert {
     index: u32,
 }
 
-/// Resize
-#[derive(Debug)]
-enum ResizeSize {
-    Height(u32),
-    Width(u32),
-    BoundingBox(u32, u32),
-    ExactBox(u32, u32),
+impl CommandTrait for Invert {
+    fn execute(&self, image: &mut dyn GenericThumbnail) {
+        GenericThumbnail::invert(image);
+    }
 }
 
+/// Resize
 struct Resize {
     index: u32,
     size: ResizeSize,
 }
 
+impl CommandTrait for Resize {
+    fn execute(&self, image: &mut dyn GenericThumbnail) {
+        GenericThumbnail::resize(image, self.size);
+    }
+}
+
+/// ResizeFilter
 struct ResizeFilter {
     index: u32,
     size: ResizeSize,
-    filter: String,
+    filter: ResampleFilter,
+}
+
+impl CommandTrait for ResizeFilter {
+    fn execute(&self, image: &mut dyn GenericThumbnail) {
+        GenericThumbnail::resize_filter(image, self.size, self.filter);
+    }
 }
 
 /// unsharpen
@@ -114,32 +159,20 @@ struct Unsharpen {
     threshold: u32,
 }
 
-/*
+impl CommandTrait for Unsharpen {
+    fn execute(&self, image: &mut dyn GenericThumbnail) {
+        GenericThumbnail::unsharpen(image, self.sigma, self.threshold);
+    }
+}
+
 /// Commands
-struct CmdVec {
-    commands: Vec<Box<dyn CmdTrait>>,
+struct Commands {
+    commands: Vec<Box<dyn CommandTrait>>,
 }
 
-trait CmdTrait {
-    fn execute(&self, &mut image: ThumbnailOperations);
+trait CommandTrait {
+    fn execute(&self, image: &mut dyn GenericThumbnail);
 }
-
-impl Resize {
-    fn execute(&mut image: ThumbnailOperations) -> Self { //TODO "... -> Self" ???
-        //TODO
-    }
-
-    fn new(x: u32, y: u32, exact: BOOL) -> Self {
-        Self {
-            index: 0,
-            x,
-            y,
-            exact,
-            size: ()
-        }
-    }
-}
-*/
 
 fn main() {
     let matches = App::new("Thumbnail-Generator")
@@ -154,37 +187,6 @@ fn main() {
             .help("Sets the output file to save")
             .required(true)
             .index(2))
-
-        /*
-        .arg(Arg::with_name("preset")
-            .short("p")
-            .long("preset")
-            .value_name("ID")
-            .help("Sets the preset settings")
-            .takes_value(true))
-        .arg(Arg::with_name("config")
-            .short("c")
-            .long("config")
-            .value_name("FILE")
-            .help("Sets a custom config file")
-            .takes_value(true))
-        .arg(Arg::with_name("compression")
-            .short("m")
-            .long("compress")
-            .multiple(true)
-            .help("Sets the level of compression"))
-        .subcommand(SubCommand::with_name("watermark")
-            .about("controls implementation of a watermark")
-            .version("1.3")
-            .author("Someone E. <someone_else@other.com>")
-            .arg(Arg::with_name("WATERMARK")
-                .help("Sets the input file to use")
-                .required(true)
-                .index(1))
-            .arg(Arg::with_name("colored")
-                .help("defines, if watermark is colored")))
-        */
-
         .arg(Arg::with_name(FUNC_BLUR)
             .long(FUNC_BLUR)
             .value_name("sigma")
@@ -277,26 +279,7 @@ fn main() {
     println!("Input file: {}", file_in);
     println!("Output file: {}", file_out);
 
-    /*
-    match matches.occurrences_of("compression") {
-        0 => println!("No compression (0%)"),
-        1 => println!("Low compression (25%)"),
-        2 => println!("High compression (50%)"),
-        3 | _ => println!("Max compression (75%)"),
-    }
-
-    // You can handle information about subcommands by requesting their matches by name
-    // (as below), requesting just the name used, or both at the same time
-    if let Some(matches) = matches.subcommand_matches("watermark") {
-        let file_wm = String::from(matches.value_of("WATERMARK").unwrap());
-        println!("Watermark file: {}", file_wm);
-        if matches.is_present("colored") {
-            println!(" -> colored");
-        } else {
-            println!(" -> black and white");
-        }
-    }
-     */
+    let mut cmd_list = Commands { commands: vec![] };
 
     if matches.is_present(FUNC_BLUR) {
         let index = matches.index_of(FUNC_BLUR).unwrap() as u32;
@@ -304,6 +287,7 @@ fn main() {
 
         let blur = Blur { index, sigma };
         println!("► {:02}. blur:\t\tsigma = {}", blur.index, blur.sigma);
+        cmd_list.commands.push(Box::new(blur));
     }
 
     if matches.is_present(FUNC_BRIGHTEN) {
@@ -312,6 +296,7 @@ fn main() {
 
         let brighten = Brighten { index, value };
         println!("► {:02}. brighten:\t\tvalue = {}", brighten.index, brighten.value);
+        cmd_list.commands.push(Box::new(brighten));
     }
 
     if matches.is_present(FUNC_HUEROTATE) {
@@ -320,6 +305,7 @@ fn main() {
 
         let huerotate = Huerotate { index, degree };
         println!("► {:02}. huerotate:\tdegree = {}", huerotate.index, huerotate.degree);
+        cmd_list.commands.push(Box::new(huerotate));
     }
 
     if matches.is_present(FUNC_ROTATE90) {
@@ -328,6 +314,7 @@ fn main() {
 
         let huerotate = Huerotate { index, degree };
         println!("► {:02}. huerotate:\tdegree = {}", huerotate.index, huerotate.degree);
+        cmd_list.commands.push(Box::new(huerotate));
     }
 
     if matches.is_present(FUNC_ROTATE180) {
@@ -335,6 +322,7 @@ fn main() {
 
         let huerotate = Huerotate { index, degree: 180 };
         println!("► {:02}. huerotate:\tdegree = {}", huerotate.index, huerotate.degree);
+        cmd_list.commands.push(Box::new(huerotate));
     }
 
     if matches.is_present(FUNC_ROTATE270) {
@@ -342,6 +330,7 @@ fn main() {
 
         let huerotate = Huerotate { index, degree: 270 };
         println!("► {:02}. huerotate:\tdegree = {}", huerotate.index, huerotate.degree);
+        cmd_list.commands.push(Box::new(huerotate));
     }
 
     if matches.is_present(FUNC_CONTRAST) {
@@ -350,6 +339,7 @@ fn main() {
 
         let contrast = Contrast { index, value };
         println!("► {:02}. contrast:\tvalue = {}", contrast.index, contrast.value);
+        cmd_list.commands.push(Box::new(contrast));
     }
 
     //TODO rework combine both crop functions?
@@ -364,6 +354,7 @@ fn main() {
 
         let crop = Crop { index, config: CropConfig::Box(x, y, width, height) };
         println!("► {:02}. crop_box:\t{:?}", crop.index, crop.config);
+        cmd_list.commands.push(Box::new(crop));
     }
 
     if matches.is_present(FUNC_CROP_RATIO) {
@@ -375,6 +366,7 @@ fn main() {
 
         let crop = Crop { index, config: CropConfig::Ratio(x_ratio, y_ratio) };
         println!("► {:02}. crop_ratio:\t{:?}", crop.index, crop.config);
+        cmd_list.commands.push(Box::new(crop));
     }
 
     if matches.is_present(FUNC_FLIP_HORIZONTAL) {
@@ -382,6 +374,7 @@ fn main() {
 
         let flip = Flip { index, orientation: FlipOrientation::Horizontal };
         println!("► {:02}. flip:\t\torientation = {:?}", flip.index, flip.orientation);
+        cmd_list.commands.push(Box::new(flip));
     }
 
     if matches.is_present(FUNC_FLIP_VERTICAL) {
@@ -389,6 +382,7 @@ fn main() {
 
         let flip = Flip { index, orientation: FlipOrientation::Vertical };
         println!("► {:02}. flip:\t\torientation = {:?}", flip.index, flip.orientation);
+        cmd_list.commands.push(Box::new(flip));
     }
 
     if matches.is_present(FUNC_INVERT) {
@@ -396,6 +390,7 @@ fn main() {
 
         let invert = Invert { index };
         println!("► {:02}. invert", invert.index);
+        cmd_list.commands.push(Box::new(invert));
     }
 
     //TODO rework (currently needing all 3 arguments)?
@@ -418,6 +413,7 @@ fn main() {
             resize = Resize { index, size: ResizeSize::ExactBox(width, height) };
         }
         println!("► {:02}. resize:\t\t{:?}", resize.index, resize.size);
+        cmd_list.commands.push(Box::new(resize));
     }
 
     if matches.is_present(FUNC_RESIZE_F) {
@@ -429,12 +425,12 @@ fn main() {
         let exact = values[2].parse::<bool>().unwrap_or(false);
 
         let filter = match values[3] {
-            _ if values[3] == FILTERS[0] => String::from(FILTERS[0]),
-            _ if values[3] == FILTERS[1] => String::from(FILTERS[1]),
-            _ if values[3] == FILTERS[2] => String::from(FILTERS[2]),
-            _ if values[3] == FILTERS[3] => String::from(FILTERS[3]),
-            _ if values[3] == FILTERS[4] => String::from(FILTERS[4]),
-            _ => String::from(FILTERS[0]),
+            _ if values[3] == FILTERS[0] => ResampleFilter::Nearest,
+            _ if values[3] == FILTERS[1] => ResampleFilter::Triangle,
+            _ if values[3] == FILTERS[2] => ResampleFilter::CatmullRom,
+            _ if values[3] == FILTERS[3] => ResampleFilter::Gaussian,
+            _ if values[3] == FILTERS[4] => ResampleFilter::Lanczos3,
+            _ => ResampleFilter::Nearest,
         };
 
         let resize_filter;
@@ -447,7 +443,8 @@ fn main() {
         } else {
             resize_filter = ResizeFilter { index, size: ResizeSize::ExactBox(width, height), filter };
         }
-        println!("► {:02}. resize_f:\t\t{:?}\tfilter: {}", resize_filter.index, resize_filter.size, resize_filter.filter);
+        println!("► {:02}. resize_f:\t\t{:?}\tfilter: {:?}", resize_filter.index, resize_filter.size, resize_filter.filter);
+        cmd_list.commands.push(Box::new(resize_filter));
     }
 
     if matches.is_present(FUNC_UNSHARPEN) {
@@ -459,10 +456,13 @@ fn main() {
 
         let unsharpen = Unsharpen { index, sigma, threshold };
         println!("► {:02}. unsharpen:\tsigma = {}\t\tthreshold = {}", unsharpen.index, unsharpen.sigma, unsharpen.threshold);
+        cmd_list.commands.push(Box::new(unsharpen));
     }
 
 
     // more program logic goes here...
+
+    // println!("{:?}", cmd_list);
 }
 
 #[cfg(test)]
