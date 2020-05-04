@@ -7,7 +7,7 @@ extern crate image;
 
 use clap::{App, Arg};
 
-use crate::generic::{CropConfig, FlipOrientation, ResampleFilter, ResizeSize};
+use crate::generic::{Crop, Orientation, ResampleFilter, Resize};
 pub use crate::generic::GenericThumbnail;
 pub use crate::thumbnail::SingleThumbnail;
 pub use crate::thumbnail::StaticThumbnail;
@@ -43,123 +43,121 @@ const FILTERS: [&str; 5] = ["nearest", "triangle", "catmull_rom", "gaussian", "l
 //  .\target\debug\thumbnailer_cli.exe in.png out.png --blur 6 --brighten 15
 
 /// blur
-struct Blur {
+struct CmdBlur {
     index: u32,
     sigma: f32,
 }
 
-impl CommandTrait for Blur {
+impl CommandTrait for CmdBlur {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::blur(image, self.sigma);
     }
 }
 
 /// brighten
-struct Brighten {
+struct CmdBrighten {
     index: u32,
     value: i32,
 }
 
-impl CommandTrait for Brighten {
+impl CommandTrait for CmdBrighten {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::brighten(image, self.value);
     }
 }
 
 /// huerotate
-struct Huerotate {
+struct CmdHuerotate {
     index: u32,
     degree: i32,
 }
 
-impl CommandTrait for Huerotate {
+impl CommandTrait for CmdHuerotate {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::huerotate(image, self.degree);
     }
 }
 
 /// Contrast
-struct Contrast {
+struct CmdContrast {
     index: u32,
     value: f32,
 }
 
-impl CommandTrait for Contrast {
+impl CommandTrait for CmdContrast {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::contrast(image, self.value);
     }
 }
 
 /// crop
-
-struct Crop {
+struct CmdCrop {
     index: u32,
-    config: CropConfig,
+    config: Crop,
 }
 
-impl CommandTrait for Crop {
+impl CommandTrait for CmdCrop {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::crop(image, self.config);
     }
 }
 
 /// flip
-
-struct Flip {
+struct CmdFlip {
     index: u32,
-    orientation: FlipOrientation,
+    orientation: Orientation,
 }
 
-impl CommandTrait for Flip {
+impl CommandTrait for CmdFlip {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::flip(image, self.orientation);
     }
 }
 
 /// invert
-struct Invert {
+struct CmdInvert {
     index: u32,
 }
 
-impl CommandTrait for Invert {
+impl CommandTrait for CmdInvert {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::invert(image);
     }
 }
 
 /// Resize
-struct Resize {
+struct CmdResize {
     index: u32,
-    size: ResizeSize,
+    size: Resize,
 }
 
-impl CommandTrait for Resize {
+impl CommandTrait for CmdResize {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::resize(image, self.size);
     }
 }
 
 /// ResizeFilter
-struct ResizeFilter {
+struct CmdResizeFilter {
     index: u32,
-    size: ResizeSize,
+    size: Resize,
     filter: ResampleFilter,
 }
 
-impl CommandTrait for ResizeFilter {
+impl CommandTrait for CmdResizeFilter {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::resize_filter(image, self.size, self.filter);
     }
 }
 
 /// unsharpen
-struct Unsharpen {
+struct CmdUnsharpen {
     index: u32,
     sigma: f32,
     threshold: u32,
 }
 
-impl CommandTrait for Unsharpen {
+impl CommandTrait for CmdUnsharpen {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::unsharpen(image, self.sigma, self.threshold);
     }
@@ -285,7 +283,7 @@ fn main() {
         let index = matches.index_of(FUNC_BLUR).unwrap() as u32;
         let sigma = String::from(matches.value_of(FUNC_BLUR).unwrap()).parse::<f32>().unwrap_or(0.0);
 
-        let blur = Blur { index, sigma };
+        let blur = CmdBlur { index, sigma };
         println!("► {:02}. blur:\t\tsigma = {}", blur.index, blur.sigma);
         cmd_list.commands.push(Box::new(blur));
     }
@@ -294,7 +292,7 @@ fn main() {
         let index = matches.index_of(FUNC_BRIGHTEN).unwrap() as u32;
         let value = String::from(matches.value_of(FUNC_BRIGHTEN).unwrap()).parse::<i32>().unwrap_or(0);
 
-        let brighten = Brighten { index, value };
+        let brighten = CmdBrighten { index, value };
         println!("► {:02}. brighten:\t\tvalue = {}", brighten.index, brighten.value);
         cmd_list.commands.push(Box::new(brighten));
     }
@@ -303,7 +301,7 @@ fn main() {
         let index = matches.index_of(FUNC_HUEROTATE).unwrap() as u32;
         let degree = String::from(matches.value_of(FUNC_HUEROTATE).unwrap()).parse::<i32>().unwrap_or(0);
 
-        let huerotate = Huerotate { index, degree };
+        let huerotate = CmdHuerotate { index, degree };
         println!("► {:02}. huerotate:\tdegree = {}", huerotate.index, huerotate.degree);
         cmd_list.commands.push(Box::new(huerotate));
     }
@@ -312,7 +310,7 @@ fn main() {
         let index = matches.index_of(FUNC_ROTATE90).unwrap() as u32;
         let degree = 90 * matches.occurrences_of(FUNC_ROTATE90) as i32;
 
-        let huerotate = Huerotate { index, degree };
+        let huerotate = CmdHuerotate { index, degree };
         println!("► {:02}. huerotate:\tdegree = {}", huerotate.index, huerotate.degree);
         cmd_list.commands.push(Box::new(huerotate));
     }
@@ -320,7 +318,7 @@ fn main() {
     if matches.is_present(FUNC_ROTATE180) {
         let index = matches.index_of(FUNC_ROTATE180).unwrap() as u32;
 
-        let huerotate = Huerotate { index, degree: 180 };
+        let huerotate = CmdHuerotate { index, degree: 180 };
         println!("► {:02}. huerotate:\tdegree = {}", huerotate.index, huerotate.degree);
         cmd_list.commands.push(Box::new(huerotate));
     }
@@ -328,7 +326,7 @@ fn main() {
     if matches.is_present(FUNC_ROTATE270) {
         let index = matches.index_of(FUNC_ROTATE270).unwrap() as u32;
 
-        let huerotate = Huerotate { index, degree: 270 };
+        let huerotate = CmdHuerotate { index, degree: 270 };
         println!("► {:02}. huerotate:\tdegree = {}", huerotate.index, huerotate.degree);
         cmd_list.commands.push(Box::new(huerotate));
     }
@@ -337,7 +335,7 @@ fn main() {
         let index = matches.index_of(FUNC_CONTRAST).unwrap() as u32;
         let value = String::from(matches.value_of(FUNC_CONTRAST).unwrap()).parse::<f32>().unwrap_or(0.0);
 
-        let contrast = Contrast { index, value };
+        let contrast = CmdContrast { index, value };
         println!("► {:02}. contrast:\tvalue = {}", contrast.index, contrast.value);
         cmd_list.commands.push(Box::new(contrast));
     }
@@ -352,7 +350,7 @@ fn main() {
         let width = values[2].parse::<u32>().unwrap_or(0);
         let height = values[3].parse::<u32>().unwrap_or(0);
 
-        let crop = Crop { index, config: CropConfig::Box(x, y, width, height) };
+        let crop = CmdCrop { index, config: Crop::Box(x, y, width, height) };
         println!("► {:02}. crop_box:\t{:?}", crop.index, crop.config);
         cmd_list.commands.push(Box::new(crop));
     }
@@ -364,7 +362,7 @@ fn main() {
         let x_ratio = values[0].parse::<f32>().unwrap_or(0.0);
         let y_ratio = values[1].parse::<f32>().unwrap_or(0.0);
 
-        let crop = Crop { index, config: CropConfig::Ratio(x_ratio, y_ratio) };
+        let crop = CmdCrop { index, config: Crop::Ratio(x_ratio, y_ratio) };
         println!("► {:02}. crop_ratio:\t{:?}", crop.index, crop.config);
         cmd_list.commands.push(Box::new(crop));
     }
@@ -372,7 +370,7 @@ fn main() {
     if matches.is_present(FUNC_FLIP_HORIZONTAL) {
         let index = matches.index_of(FUNC_FLIP_HORIZONTAL).unwrap() as u32;
 
-        let flip = Flip { index, orientation: FlipOrientation::Horizontal };
+        let flip = CmdFlip { index, orientation: Orientation::Horizontal };
         println!("► {:02}. flip:\t\torientation = {:?}", flip.index, flip.orientation);
         cmd_list.commands.push(Box::new(flip));
     }
@@ -380,7 +378,7 @@ fn main() {
     if matches.is_present(FUNC_FLIP_VERTICAL) {
         let index = matches.index_of(FUNC_FLIP_VERTICAL).unwrap() as u32;
 
-        let flip = Flip { index, orientation: FlipOrientation::Vertical };
+        let flip = CmdFlip { index, orientation: Orientation::Vertical };
         println!("► {:02}. flip:\t\torientation = {:?}", flip.index, flip.orientation);
         cmd_list.commands.push(Box::new(flip));
     }
@@ -388,7 +386,7 @@ fn main() {
     if matches.is_present(FUNC_INVERT) {
         let index = matches.index_of(FUNC_INVERT).unwrap() as u32;
 
-        let invert = Invert { index };
+        let invert = CmdInvert { index };
         println!("► {:02}. invert", invert.index);
         cmd_list.commands.push(Box::new(invert));
     }
@@ -404,13 +402,13 @@ fn main() {
 
         let resize;
         if height == 0 {
-            resize = Resize { index, size: ResizeSize::Width(width) };
+            resize = CmdResize { index, size: Resize::Width(width) };
         } else if width == 0 {
-            resize = Resize { index, size: ResizeSize::Height(height) };
+            resize = CmdResize { index, size: Resize::Height(height) };
         } else if !exact {
-            resize = Resize { index, size: ResizeSize::BoundingBox(width, height) };
+            resize = CmdResize { index, size: Resize::BoundingBox(width, height) };
         } else {
-            resize = Resize { index, size: ResizeSize::ExactBox(width, height) };
+            resize = CmdResize { index, size: Resize::ExactBox(width, height) };
         }
         println!("► {:02}. resize:\t\t{:?}", resize.index, resize.size);
         cmd_list.commands.push(Box::new(resize));
@@ -435,13 +433,13 @@ fn main() {
 
         let resize_filter;
         if height == 0 {
-            resize_filter = ResizeFilter { index, size: ResizeSize::Width(width), filter };
+            resize_filter = CmdResizeFilter { index, size: Resize::Width(width), filter };
         } else if width == 0 {
-            resize_filter = ResizeFilter { index, size: ResizeSize::Height(height), filter };
+            resize_filter = CmdResizeFilter { index, size: Resize::Height(height), filter };
         } else if !exact {
-            resize_filter = ResizeFilter { index, size: ResizeSize::BoundingBox(width, height), filter };
+            resize_filter = CmdResizeFilter { index, size: Resize::BoundingBox(width, height), filter };
         } else {
-            resize_filter = ResizeFilter { index, size: ResizeSize::ExactBox(width, height), filter };
+            resize_filter = CmdResizeFilter { index, size: Resize::ExactBox(width, height), filter };
         }
         println!("► {:02}. resize_f:\t\t{:?}\tfilter: {:?}", resize_filter.index, resize_filter.size, resize_filter.filter);
         cmd_list.commands.push(Box::new(resize_filter));
@@ -454,7 +452,7 @@ fn main() {
         let sigma = values[0].parse::<f32>().unwrap_or(0.0);
         let threshold = values[1].parse::<u32>().unwrap_or(0);
 
-        let unsharpen = Unsharpen { index, sigma, threshold };
+        let unsharpen = CmdUnsharpen { index, sigma, threshold };
         println!("► {:02}. unsharpen:\tsigma = {}\t\tthreshold = {}", unsharpen.index, unsharpen.sigma, unsharpen.threshold);
         cmd_list.commands.push(Box::new(unsharpen));
     }
