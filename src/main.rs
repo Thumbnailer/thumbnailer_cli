@@ -23,7 +23,8 @@ const FUNC_RESIZE: &str = "resize";
 const FUNC_RESIZE_F: &str = "resize_f";
 const FUNC_UNSHARPEN: &str = "unsharpen";
 
-const BOOL: [&str; 2] = ["true", "false"];
+const BOOLS: [&str; 2] = ["true", "false"];
+const FILTERS: [&str; 5] = ["nearest", "triangle", "catmull_rom", "gaussian", "lanczos3"];
 
 //  .\target\debug\thumbnailer_cli.exe -h
 //  .\target\debug\thumbnailer_cli.exe in.png out.png --flip_vertical  --brighten 15 --blur 34.151545 --unsharpen 56 14
@@ -253,13 +254,14 @@ fn main() {
             .value_name("exact")
             .help("Resize the supplied image to the specified dimensions. nwidth and nheight are the new dimensions.")
             .takes_value(true))
+        //TODO predefine filter
         .arg(Arg::with_name(FUNC_RESIZE_F)
             .long(FUNC_RESIZE_F)
             .value_name("nwidth")
             .value_name("nheight")
             .value_name("exact")
             .value_name("filter")
-            .help("Resize the supplied image to the specified dimensions. nwidth and nheight are the new dimensions. filter is the sampling filter to use.")
+            .help("Resize the supplied image to the specified dimensions. nwidth and nheight are the new dimensions. filter is the sampling filter to use. available filters: nearest, triangle, catmull_rom, gaussian, lanczos3")
             .takes_value(true))
         .arg(Arg::with_name(FUNC_UNSHARPEN)
             .long(FUNC_UNSHARPEN)
@@ -416,6 +418,36 @@ fn main() {
             resize = Resize { index, size: ResizeSize::ExactBox(width, height) };
         }
         println!("► {:02}. resize:\t\t{:?}", resize.index, resize.size);
+    }
+
+    if matches.is_present(FUNC_RESIZE_F) {
+        let index = matches.index_of(FUNC_RESIZE_F).unwrap() as u32;
+        let values: Vec<_> = matches.values_of(FUNC_RESIZE_F).unwrap().collect();
+
+        let width = values[0].parse::<u32>().unwrap_or(0);
+        let height = values[1].parse::<u32>().unwrap_or(0);
+        let exact = values[2].parse::<bool>().unwrap_or(false);
+
+        let filter = match values[3] {
+            _ if values[3] == FILTERS[0] => String::from(FILTERS[0]),
+            _ if values[3] == FILTERS[1] => String::from(FILTERS[1]),
+            _ if values[3] == FILTERS[2] => String::from(FILTERS[2]),
+            _ if values[3] == FILTERS[3] => String::from(FILTERS[3]),
+            _ if values[3] == FILTERS[4] => String::from(FILTERS[4]),
+            _ => String::from(FILTERS[0]),
+        };
+
+        let resize_filter;
+        if height == 0 {
+            resize_filter = ResizeFilter { index, size: ResizeSize::Width(width), filter };
+        } else if width == 0 {
+            resize_filter = ResizeFilter { index, size: ResizeSize::Height(height), filter };
+        } else if !exact {
+            resize_filter = ResizeFilter { index, size: ResizeSize::BoundingBox(width, height), filter };
+        } else {
+            resize_filter = ResizeFilter { index, size: ResizeSize::ExactBox(width, height), filter };
+        }
+        println!("► {:02}. resize_f:\t\t{:?}\tfilter: {}", resize_filter.index, resize_filter.size, resize_filter.filter);
     }
 
     if matches.is_present(FUNC_UNSHARPEN) {
