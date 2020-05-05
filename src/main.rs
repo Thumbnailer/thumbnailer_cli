@@ -5,6 +5,9 @@ extern crate image;
 
 //mod generic_thumbnail;
 
+use std::cmp::Eq;
+use std::cmp::Ordering;
+
 use clap::{App, Arg};
 
 use crate::generic::{Crop, Orientation, ResampleFilter, Resize};
@@ -52,6 +55,14 @@ impl CommandTrait for CmdBlur {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::blur(image, self.sigma);
     }
+
+    fn get_index(&self) -> u32 {
+        self.index
+    }
+
+    fn print(&self) -> String {
+        format!("► {:02}. blur:\t\tsigma = {}", self.index, self.sigma)
+    }
 }
 
 /// brighten
@@ -63,6 +74,14 @@ struct CmdBrighten {
 impl CommandTrait for CmdBrighten {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::brighten(image, self.value);
+    }
+
+    fn get_index(&self) -> u32 {
+        self.index
+    }
+
+    fn print(&self) -> String {
+        format!("► {:02}. brighten:\t\tvalue = {}", self.index, self.value)
     }
 }
 
@@ -76,6 +95,14 @@ impl CommandTrait for CmdHuerotate {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::huerotate(image, self.degree);
     }
+
+    fn get_index(&self) -> u32 {
+        self.index
+    }
+
+    fn print(&self) -> String {
+        format!("► {:02}. huerotate:\tdegree = {}", self.index, self.degree)
+    }
 }
 
 /// Contrast
@@ -87,6 +114,14 @@ struct CmdContrast {
 impl CommandTrait for CmdContrast {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::contrast(image, self.value);
+    }
+
+    fn get_index(&self) -> u32 {
+        self.index
+    }
+
+    fn print(&self) -> String {
+        format!("► {:02}. contrast:\tvalue = {}", self.index, self.value)
     }
 }
 
@@ -100,6 +135,14 @@ impl CommandTrait for CmdCrop {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::crop(image, self.config);
     }
+
+    fn get_index(&self) -> u32 {
+        self.index
+    }
+
+    fn print(&self) -> String {
+        format!("► {:02}. crop:\t\t{:?}", self.index, self.config)
+    }
 }
 
 /// flip
@@ -112,6 +155,14 @@ impl CommandTrait for CmdFlip {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::flip(image, self.orientation);
     }
+
+    fn get_index(&self) -> u32 {
+        self.index
+    }
+
+    fn print(&self) -> String {
+        format!("► {:02}. flip:\t\torientation = {:?}", self.index, self.orientation)
+    }
 }
 
 /// invert
@@ -122,6 +173,14 @@ struct CmdInvert {
 impl CommandTrait for CmdInvert {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::invert(image);
+    }
+
+    fn get_index(&self) -> u32 {
+        self.index
+    }
+
+    fn print(&self) -> String {
+        format!("► {:02}. invert", self.index)
     }
 }
 
@@ -134,6 +193,14 @@ struct CmdResize {
 impl CommandTrait for CmdResize {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::resize(image, self.size);
+    }
+
+    fn get_index(&self) -> u32 {
+        self.index
+    }
+
+    fn print(&self) -> String {
+        format!("► {:02}. resize:\t\t{:?}", self.index, self.size)
     }
 }
 
@@ -148,6 +215,14 @@ impl CommandTrait for CmdResizeFilter {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::resize_filter(image, self.size, self.filter);
     }
+
+    fn get_index(&self) -> u32 {
+        self.index
+    }
+
+    fn print(&self) -> String {
+        format!("► {:02}. resize_f:\t\t{:?}\tfilter: {:?}", self.index, self.size, self.filter)
+    }
 }
 
 /// unsharpen
@@ -161,6 +236,14 @@ impl CommandTrait for CmdUnsharpen {
     fn execute(&self, image: &mut dyn GenericThumbnail) {
         GenericThumbnail::unsharpen(image, self.sigma, self.threshold);
     }
+
+    fn get_index(&self) -> u32 {
+        self.index
+    }
+
+    fn print(&self) -> String {
+        format!("► {:02}. unsharpen:\tsigma = {}\t\tthreshold = {}", self.index, self.sigma, self.threshold)
+    }
 }
 
 /// Commands
@@ -170,7 +253,29 @@ struct Commands {
 
 trait CommandTrait {
     fn execute(&self, image: &mut dyn GenericThumbnail);
+    fn get_index(&self) -> u32;
+    fn print(&self) -> String;
 }
+
+impl Ord for dyn CommandTrait {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.get_index().cmp(&other.get_index())
+    }
+}
+
+impl PartialOrd for dyn CommandTrait {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for dyn CommandTrait {
+    fn eq(&self, other: &Self) -> bool {
+        self.get_index() == other.get_index()
+    }
+}
+
+impl Eq for dyn CommandTrait {}
 
 fn main() {
     let matches = App::new("Thumbnail-Generator")
@@ -284,7 +389,6 @@ fn main() {
         let sigma = String::from(matches.value_of(FUNC_BLUR).unwrap()).parse::<f32>().unwrap_or(0.0);
 
         let blur = CmdBlur { index, sigma };
-        println!("► {:02}. blur:\t\tsigma = {}", blur.index, blur.sigma);
         cmd_list.commands.push(Box::new(blur));
     }
 
@@ -293,7 +397,6 @@ fn main() {
         let value = String::from(matches.value_of(FUNC_BRIGHTEN).unwrap()).parse::<i32>().unwrap_or(0);
 
         let brighten = CmdBrighten { index, value };
-        println!("► {:02}. brighten:\t\tvalue = {}", brighten.index, brighten.value);
         cmd_list.commands.push(Box::new(brighten));
     }
 
@@ -302,7 +405,6 @@ fn main() {
         let degree = String::from(matches.value_of(FUNC_HUEROTATE).unwrap()).parse::<i32>().unwrap_or(0);
 
         let huerotate = CmdHuerotate { index, degree };
-        println!("► {:02}. huerotate:\tdegree = {}", huerotate.index, huerotate.degree);
         cmd_list.commands.push(Box::new(huerotate));
     }
 
@@ -311,7 +413,6 @@ fn main() {
         let degree = 90 * matches.occurrences_of(FUNC_ROTATE90) as i32;
 
         let huerotate = CmdHuerotate { index, degree };
-        println!("► {:02}. huerotate:\tdegree = {}", huerotate.index, huerotate.degree);
         cmd_list.commands.push(Box::new(huerotate));
     }
 
@@ -319,7 +420,6 @@ fn main() {
         let index = matches.index_of(FUNC_ROTATE180).unwrap() as u32;
 
         let huerotate = CmdHuerotate { index, degree: 180 };
-        println!("► {:02}. huerotate:\tdegree = {}", huerotate.index, huerotate.degree);
         cmd_list.commands.push(Box::new(huerotate));
     }
 
@@ -327,7 +427,6 @@ fn main() {
         let index = matches.index_of(FUNC_ROTATE270).unwrap() as u32;
 
         let huerotate = CmdHuerotate { index, degree: 270 };
-        println!("► {:02}. huerotate:\tdegree = {}", huerotate.index, huerotate.degree);
         cmd_list.commands.push(Box::new(huerotate));
     }
 
@@ -336,7 +435,6 @@ fn main() {
         let value = String::from(matches.value_of(FUNC_CONTRAST).unwrap()).parse::<f32>().unwrap_or(0.0);
 
         let contrast = CmdContrast { index, value };
-        println!("► {:02}. contrast:\tvalue = {}", contrast.index, contrast.value);
         cmd_list.commands.push(Box::new(contrast));
     }
 
@@ -351,7 +449,6 @@ fn main() {
         let height = values[3].parse::<u32>().unwrap_or(0);
 
         let crop = CmdCrop { index, config: Crop::Box(x, y, width, height) };
-        println!("► {:02}. crop_box:\t{:?}", crop.index, crop.config);
         cmd_list.commands.push(Box::new(crop));
     }
 
@@ -363,7 +460,6 @@ fn main() {
         let y_ratio = values[1].parse::<f32>().unwrap_or(0.0);
 
         let crop = CmdCrop { index, config: Crop::Ratio(x_ratio, y_ratio) };
-        println!("► {:02}. crop_ratio:\t{:?}", crop.index, crop.config);
         cmd_list.commands.push(Box::new(crop));
     }
 
@@ -371,7 +467,6 @@ fn main() {
         let index = matches.index_of(FUNC_FLIP_HORIZONTAL).unwrap() as u32;
 
         let flip = CmdFlip { index, orientation: Orientation::Horizontal };
-        println!("► {:02}. flip:\t\torientation = {:?}", flip.index, flip.orientation);
         cmd_list.commands.push(Box::new(flip));
     }
 
@@ -379,7 +474,6 @@ fn main() {
         let index = matches.index_of(FUNC_FLIP_VERTICAL).unwrap() as u32;
 
         let flip = CmdFlip { index, orientation: Orientation::Vertical };
-        println!("► {:02}. flip:\t\torientation = {:?}", flip.index, flip.orientation);
         cmd_list.commands.push(Box::new(flip));
     }
 
@@ -387,7 +481,6 @@ fn main() {
         let index = matches.index_of(FUNC_INVERT).unwrap() as u32;
 
         let invert = CmdInvert { index };
-        println!("► {:02}. invert", invert.index);
         cmd_list.commands.push(Box::new(invert));
     }
 
@@ -410,7 +503,6 @@ fn main() {
         } else {
             resize = CmdResize { index, size: Resize::ExactBox(width, height) };
         }
-        println!("► {:02}. resize:\t\t{:?}", resize.index, resize.size);
         cmd_list.commands.push(Box::new(resize));
     }
 
@@ -441,7 +533,6 @@ fn main() {
         } else {
             resize_filter = CmdResizeFilter { index, size: Resize::ExactBox(width, height), filter };
         }
-        println!("► {:02}. resize_f:\t\t{:?}\tfilter: {:?}", resize_filter.index, resize_filter.size, resize_filter.filter);
         cmd_list.commands.push(Box::new(resize_filter));
     }
 
@@ -453,14 +544,25 @@ fn main() {
         let threshold = values[1].parse::<u32>().unwrap_or(0);
 
         let unsharpen = CmdUnsharpen { index, sigma, threshold };
-        println!("► {:02}. unsharpen:\tsigma = {}\t\tthreshold = {}", unsharpen.index, unsharpen.sigma, unsharpen.threshold);
         cmd_list.commands.push(Box::new(unsharpen));
     }
 
+    println!("########## unsorted ##########");
+    for x in 0..cmd_list.commands.len() {
+        println!("{}", cmd_list.commands.get(x).unwrap().print());
+    }
+
+    cmd_list.commands.sort();
+
+    println!("##########  sorted  ##########");
+    for x in 0..cmd_list.commands.len() {
+        println!("{}", cmd_list.commands.get(x).unwrap().print());
+    }
+
+    // TODO execute
+    // cmd_list.commands.get(0).unwrap().execute();
 
     // more program logic goes here...
-
-    // println!("{:?}", cmd_list);
 }
 
 #[cfg(test)]
