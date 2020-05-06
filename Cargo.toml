@@ -10,4 +10,4 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 clap = "2.33.0"
 image = "0.23.3"
-assert_cli = "0.6.3"
+thumbnailer = { git = "https://github.com/Thumbnailer/thumbnailer.git"}
