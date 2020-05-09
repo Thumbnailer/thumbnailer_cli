@@ -20,6 +20,7 @@ pub struct Commands {
 //  .\target\debug\thumbnailer_cli.exe in.png out.png --blur 6 --brighten 15
 
 fn main() {
+
     let matches = get_matches();
 
     let file_in = String::from(matches.value_of(NAME_FILE_IN).unwrap());
@@ -30,6 +31,7 @@ fn main() {
     println!("Output file: {}", file_out);
     for i in 0..cmd_list.commands.len() {
         println!("{}", cmd_list.commands.get(i).unwrap().print());
+        //cmd_list.commands.get(i).unwrap().execute();
     }
 
     // TODO more program logic goes here...

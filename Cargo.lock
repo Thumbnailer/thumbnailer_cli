@@ -520,7 +520,7 @@ dependencies = [
 [[package]]
 name = "thumbnailer"
 version = "0.1.0"
-source = "git+https://github.com/Thumbnailer/thumbnailer.git#43553a3c29b1f70b64e9e9d7c6ff2cffb6c8f563"
+source = "git+https://github.com/Thumbnailer/thumbnailer.git#a8200216eff6ba12774f30ee89088302c986e686"
 dependencies = [
  "image 0.23.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "imageproc 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",

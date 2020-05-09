@@ -1,5 +1,8 @@
+use std::path::Path;
+
 use clap::{App, Arg, ArgMatches};
 pub use thumbnailer::{BoxPosition, Crop, Exif, Orientation, ResampleFilter, Resize};
+use thumbnailer::{SingleThumbnail, Thumbnail};
 
 use crate::commands::{CmdBlur, CmdBrighten, CmdCombine, CmdContrast, CmdCrop, CmdExif, CmdFlip, CmdHuerotate, CmdInvert, CmdResize, CmdResizeFilter, CmdText, CmdUnsharpen};
 use crate::Commands;
@@ -47,6 +50,15 @@ const VAL_COMBINE: [&str; 3] = ["IMAGE_PATH", "x_offset", "y_offset"];
 const VAL_RESIZE: [&str; 3] = ["nwidth", "nheight", "exact"];
 const VAL_TEXT: [&str; 3] = ["text", "x_offset", "y_offset"];
 
+/// This function bundles the definition of the command line arguments as provided by clap
+///
+/// Extract from the documentation of `clap::App`:
+/// "Used to create a representation of a command line program and all possible command line arguments.
+/// Application settings are set using the "builder pattern" with the App::get_matches family of methods being the terminal methods that starts the runtime-parsing process.
+/// These methods then return information about the user supplied arguments (or lack there of)."
+/// (c) https://docs.rs/clap/2.33.0/clap/
+///
+/// Returns a new `clap::ArgMatches` struct
 pub fn get_matches() -> clap::ArgMatches<'static> {
     App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
@@ -66,44 +78,44 @@ pub fn get_matches() -> clap::ArgMatches<'static> {
         .arg(Arg::with_name(ARG_BLUR)
             .long(ARG_BLUR)
             .value_name("sigma")
-            .help("Performs a Gaussian blur on the supplied image(s). sigma as f32 is a measure of how much to blur by (is set to 0.0 if parsing fails).")
+            .help("Performs a Gaussian blur on the supplied image(s). sigma as f32 is a measure of how much to blur by.")
             .takes_value(true))
 
         .arg(Arg::with_name(ARG_BRIGHTEN)
             .long(ARG_BRIGHTEN)
             .value_name("value")
-            .help("Brightens the supplied image(s). value as i32 is the amount to brighten each pixel by (is set to 0 if parsing fails). Negative values decrease the brightness and positive values increase it.")
+            .help("Brightens the supplied image(s). value as i32 is the amount to brighten each pixel by. Negative values decrease the brightness and positive values increase it.")
             .takes_value(true))
 
         .arg(Arg::with_name(ARG_CONTRAST)
             .long(ARG_CONTRAST)
             .value_name("contrast")
-            .help("Adjusts the contrast of the supplied image(s). contrast as f32 is the amount to adjust the contrast by (is set to 0.0 if parsing fails). Negative values decrease the contrast and positive values increase the contrast.")
+            .help("Adjusts the contrast of the supplied image(s). contrast as f32 is the amount to adjust the contrast by. Negative values decrease the contrast and positive values increase the contrast.")
             .takes_value(true))
 
         .arg(Arg::with_name(ARG_COMBINE_TL)
             .long(ARG_COMBINE_TL)
             .value_names(&VAL_COMBINE)
             .group(GROUP_COMBINE)
-            .help("Inserts a photo, such as a logo given as path, into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the TOP LEFT corner of the photo (both set to 0 if parsing fails).")
+            .help("Inserts a photo, such as a logo given as path, into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the TOP LEFT corner of the photo.")
             .takes_value(true))
         .arg(Arg::with_name(ARG_COMBINE_TR)
             .long(ARG_COMBINE_TR)
             .value_names(&VAL_COMBINE)
             .group(GROUP_COMBINE)
-            .help("Inserts a photo, such as a logo given as path, into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the TOP RIGHT corner of the photo (both set to 0 if parsing fails).")
+            .help("Inserts a photo, such as a logo given as path, into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the TOP RIGHT corner of the photo.")
             .takes_value(true))
         .arg(Arg::with_name(ARG_COMBINE_BL)
             .long(ARG_COMBINE_BL)
             .value_names(&VAL_COMBINE)
             .group(GROUP_COMBINE)
-            .help("Inserts a photo, such as a logo given as path, into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the BOTTOM LEFT corner of the photo (both set to 0 if parsing fails).")
+            .help("Inserts a photo, such as a logo given as path, into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the BOTTOM LEFT corner of the photo.")
             .takes_value(true))
         .arg(Arg::with_name(ARG_COMBINE_BR)
             .long(ARG_COMBINE_BR)
             .value_names(&VAL_COMBINE)
             .group(GROUP_COMBINE)
-            .help("Inserts a photo, such as a logo given as path, into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the BOTTOM RIGHT corner of the photo (both set to 0 if parsing fails).")
+            .help("Inserts a photo, such as a logo given as path, into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the BOTTOM RIGHT corner of the photo.")
             .takes_value(true))
 
         .arg(Arg::with_name(ARG_CROP_BOX)
@@ -113,14 +125,14 @@ pub fn get_matches() -> clap::ArgMatches<'static> {
             .value_name("width")
             .value_name("height")
             .group(GROUP_CROP)
-            .help("Crops the supplied image(s) to the given width as u32 and height as u32. x as u32 is the horizontal and y as u32 the vertical offset (all set to 0 if parsing fails).")
+            .help("Crops the supplied image(s) to the given width as u32 and height as u32. x as u32 is the horizontal and y as u32 the vertical offset.")
             .takes_value(true))
         .arg(Arg::with_name(ARG_CROP_RATIO)
             .long(ARG_CROP_RATIO)
             .value_name("x_ratio")
             .value_name("y_ratio")
             .group(GROUP_CROP)
-            .help("Crops the supplied image(s) to the given ratio 'x_ratio:y_ratio'. x_ratio as f32 is representing the horizontal and y_ratio as f32 the vertical (both set to 0.0 if parsing fails).")
+            .help("Crops the supplied image(s) to the given ratio 'x_ratio:y_ratio'. x_ratio as f32 is representing the horizontal and y_ratio as f32 the vertical.")
             .takes_value(true))
 
         .arg(Arg::with_name(ARG_EXIF)
@@ -140,7 +152,7 @@ pub fn get_matches() -> clap::ArgMatches<'static> {
             .long(ARG_HUEROTATE)
             .value_name("value")
             .group(GROUP_ROTATE)
-            .help("Hue rotate the supplied image(s). value as i32 is the degrees to rotate each pixel by. 0 and 360 do nothing, the rest rotates by the given degree value (is set to 0 if parsing fails).")
+            .help("Hue rotate the supplied image(s). value as i32 is the degrees to rotate each pixel by. 0 and 360 do nothing, the rest rotates by the given degree value.")
             .takes_value(true))
 
         .arg(Arg::with_name(ARG_INVERT)
@@ -151,37 +163,37 @@ pub fn get_matches() -> clap::ArgMatches<'static> {
             .long(ARG_RESIZE)
             .value_names(&VAL_RESIZE)
             .group(GROUP_RESIZE)
-            .help("Resize the supplied image(s) to the specified dimensions. nwidth and nheight are the new dimensions (both set to 0 if parsing fails). exact as bool forces the exact resizing, but the aspect ratio may change (is set to false if parsing fails). To resize only by one dimension, set the other to 0.")
+            .help("Resize the supplied image(s) to the specified dimensions. nwidth and nheight are the new dimensions. exact as bool forces the exact resizing, but the aspect ratio may change. To resize only by one dimension, set the other to 0.")
             .takes_value(true))
         .arg(Arg::with_name(ARG_RESIZE_N)
             .long(ARG_RESIZE_N)
             .value_names(&VAL_RESIZE)
             .group(GROUP_RESIZE)
-            .help("Resize the supplied image(s) to the specified dimensions. nwidth and nheight are the new dimensions (both set to 0 if parsing fails). exact as bool forces the exact resizing, but the aspect ratio may change (is set to false if parsing fails). Nearest is the used filter (Nearest Neighbor Filter). To resize only by one dimension, set the other to 0.")
+            .help("Resize the supplied image(s) to the specified dimensions. nwidth and nheight are the new dimensions. exact as bool forces the exact resizing, but the aspect ratio may change. Nearest is the used filter (Nearest Neighbor Filter). To resize only by one dimension, set the other to 0.")
             .takes_value(true))
         .arg(Arg::with_name(ARG_RESIZE_T)
             .long(ARG_RESIZE_T)
             .value_names(&VAL_RESIZE)
             .group(GROUP_RESIZE)
-            .help("Resize the supplied image(s) to the specified dimensions. nwidth and nheight are the new dimensions (both set to 0 if parsing fails). exact as bool forces the exact resizing, but the aspect ratio may change (is set to false if parsing fails). Triangle is the used filter (Linear Filter). To resize only by one dimension, set the other to 0.")
+            .help("Resize the supplied image(s) to the specified dimensions. nwidth and nheight are the new dimensions. exact as bool forces the exact resizing, but the aspect ratio may change. Triangle is the used filter (Linear Filter). To resize only by one dimension, set the other to 0.")
             .takes_value(true))
         .arg(Arg::with_name(ARG_RESIZE_C)
             .long(ARG_RESIZE_C)
             .value_names(&VAL_RESIZE)
             .group(GROUP_RESIZE)
-            .help("Resize the supplied image(s) to the specified dimensions. nwidth and nheight are the new dimensions (both set to 0 if parsing fails). exact as bool forces the exact resizing, but the aspect ratio may change (is set to false if parsing fails). CatmullRom is the used filter (Cubic Filter). To resize only by one dimension, set the other to 0.")
+            .help("Resize the supplied image(s) to the specified dimensions. nwidth and nheight are the new dimensions. exact as bool forces the exact resizing, but the aspect ratio may change. CatmullRom is the used filter (Cubic Filter). To resize only by one dimension, set the other to 0.")
             .takes_value(true))
         .arg(Arg::with_name(ARG_RESIZE_G)
             .long(ARG_RESIZE_G)
             .value_names(&VAL_RESIZE)
             .group(GROUP_RESIZE)
-            .help("Resize the supplied image(s) to the specified dimensions. nwidth and nheight are the new dimensions (both set to 0 if parsing fails). exact as bool forces the exact resizing, but the aspect ratio may change (is set to false if parsing fails). Gaussian is the used filter (Gaussian Filter). To resize only by one dimension, set the other to 0.")
+            .help("Resize the supplied image(s) to the specified dimensions. nwidth and nheight are the new dimensions. exact as bool forces the exact resizing, but the aspect ratio may change. Gaussian is the used filter (Gaussian Filter). To resize only by one dimension, set the other to 0.")
             .takes_value(true))
         .arg(Arg::with_name(ARG_RESIZE_L)
             .long(ARG_RESIZE_L)
             .value_names(&VAL_RESIZE)
             .group(GROUP_RESIZE)
-            .help("Resize the supplied image(s) to the specified dimensions. nwidth and nheight are the new dimensions (both set to 0 if parsing fails). exact as bool forces the exact resizing, but the aspect ratio may change (is set to false if parsing fails). Lanczos3 is the used filter (Lanczos with window 3). To resize only by one dimension, set the other to 0.")
+            .help("Resize the supplied image(s) to the specified dimensions. nwidth and nheight are the new dimensions. exact as bool forces the exact resizing, but the aspect ratio may change. Lanczos3 is the used filter (Lanczos with window 3). To resize only by one dimension, set the other to 0.")
             .takes_value(true))
 
         .arg(Arg::with_name(ARG_ROTATE90)
@@ -203,81 +215,147 @@ pub fn get_matches() -> clap::ArgMatches<'static> {
             .long(ARG_TEXT_TL)
             .value_names(&VAL_TEXT)
             .group(GROUP_TEXT)
-            .help("Inserts a text as String into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the TOP LEFT corner of the photo (both set to 0 if parsing fails).")
+            .help("Inserts a text as String into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the TOP LEFT corner of the photo.")
             .takes_value(true))
         .arg(Arg::with_name(ARG_TEXT_TR)
             .long(ARG_TEXT_TR)
             .value_names(&VAL_TEXT)
             .group(GROUP_TEXT)
-            .help("Inserts a text as String into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the TOP RIGHT corner of the photo (both set to 0 if parsing fails).")
+            .help("Inserts a text as String into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the TOP RIGHT corner of the photo.")
             .takes_value(true))
         .arg(Arg::with_name(ARG_TEXT_BL)
             .long(ARG_TEXT_BL)
             .value_names(&VAL_TEXT)
             .group(GROUP_TEXT)
-            .help("Inserts a text as String into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the BOTTOM LEFT corner of the photo (both set to 0 if parsing fails).")
+            .help("Inserts a text as String into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the BOTTOM LEFT corner of the photo.")
             .takes_value(true))
         .arg(Arg::with_name(ARG_TEXT_BR)
             .long(ARG_TEXT_BR)
             .value_names(&VAL_TEXT)
             .group(GROUP_TEXT)
-            .help("Inserts a text as String into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the BOTTOM RIGHT corner of the photo (both set to 0 if parsing fails).")
+            .help("Inserts a text as String into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the BOTTOM RIGHT corner of the photo.")
             .takes_value(true))
 
         .arg(Arg::with_name(ARG_UNSHARPEN)
             .long(ARG_UNSHARPEN)
             .value_name("sigma")
             .value_name("threshold")
-            .help("Performs an unsharpen mask on the supplied image(s). sigma as f32 is the amount to unsharpen the image by (is set to 0.0 if parsing fails). threshold as i32 controls the minimal brightness change or how far apart adjacent tonal values have to be before the filter does anything (is set to 0 if parsing fails).")
+            .help("Performs an unsharpen mask on the supplied image(s). sigma as f32 is the amount to unsharpen the image by. threshold as i32 controls the minimal brightness change or how far apart adjacent tonal values have to be before the filter does anything.")
             .takes_value(true))
+
         .get_matches()
+    //.get_matches_from(vec![env!("CARGO_PKG_NAME"), "in.png" ,"--combine_tl", "C:\\Users\\p372094\\IdeaProjects\\thumbnailer_cli\\img\\test.JPG", "40", "30"])
 }
 
+/// This function is parsing the given values for all supplied arguments
+///
+/// Returns a new `Commands` struct
+///
+/// # Arguments
+///
+/// * `matches` - The `ArgMatches` struct from clap, containing the provided arguments
+///
+/// # Examples
+/// ```
+/// use clap::{App, Arg, ArgMatches};
+/// pub use thumbnailer::{BoxPosition, Crop, Exif, Orientation, ResampleFilter, Resize};
+///
+/// use crate::commands::{CmdBlur, CmdBrighten, CmdCombine, CmdContrast, CmdCrop, CmdExif, CmdFlip, CmdHuerotate, CmdInvert, CmdResize, CmdResizeFilter, CmdText, CmdUnsharpen};
+/// use crate::Commands;
+///
+/// pub const NAME_FILE_IN: &str = "INPUT_PATH";
+/// pub const NAME_FILE_OUT: &str = "OUTPUT_PATH";
+///
+/// const ARG_BLUR: &str = "blur";
+/// const ARG_BRIGHTEN: &str = "brighten";
+/// const ARG_CONTRAST: &str = "contrast";
+/// const ARG_COMBINE_TL: &str = "combine_tl";
+/// const ARG_COMBINE_TR: &str = "combine_tr";
+/// const ARG_COMBINE_BL: &str = "combine_bl";
+/// const ARG_COMBINE_BR: &str = "combine_br";
+/// const ARG_CROP_BOX: &str = "crop_box";
+/// const ARG_CROP_RATIO: &str = "crop_ratio";
+/// const ARG_EXIF: &str = "exif";
+/// const ARG_FLIP_HORIZONTAL: &str = "flip_horizontal";
+/// const ARG_FLIP_VERTICAL: &str = "flip_vertical";
+/// const ARG_HUEROTATE: &str = "huerotate";
+/// const ARG_INVERT: &str = "invert";
+/// const ARG_RESIZE: &str = "resize";
+/// const ARG_RESIZE_N: &str = "resize_n";
+/// const ARG_RESIZE_T: &str = "resize_t";
+/// const ARG_RESIZE_C: &str = "resize_c";
+/// const ARG_RESIZE_G: &str = "resize_g";
+/// const ARG_RESIZE_L: &str = "resize_l";
+/// const ARG_ROTATE90: &str = "rotate90";
+/// const ARG_ROTATE180: &str = "rotate180";
+/// const ARG_ROTATE270: &str = "rotate270";
+/// const ARG_TEXT_TL: &str = "text_tl";
+/// const ARG_TEXT_TR: &str = "text_tr";
+/// const ARG_TEXT_BL: &str = "text_bl";
+/// const ARG_TEXT_BR: &str = "text_br";
+/// const ARG_UNSHARPEN: &str = "unsharpen";
+///
+/// let matches = App::new("MyApp")
+///     .arg(Arg::with_name(ARG_BLUR)
+///         .long(ARG_BLUR)
+///         .value_name("sigma")
+///         .help("Performs a Gaussian blur on the supplied image(s). sigma as f32 is a measure of how much to blur by.")
+///         .takes_value(true))
+///     .get_matches_from(vec!["MyApp", "--blur", "5.8"]);
+///
+/// let cmd_list = read_commands(matches);
+/// for i in 0..cmd_list.commands.len() {
+///     println!("{}", cmd_list.commands.get(i).unwrap().print());
+/// }
+/// ```
 pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
     let mut cmd_list = Commands { commands: vec![] };
 
     if matches.is_present(ARG_BLUR) {
         let index = matches.index_of(ARG_BLUR).unwrap() as u32;
-        let sigma = String::from(matches.value_of(ARG_BLUR).unwrap()).parse::<f32>().unwrap_or(0.0);
+        let sigma = String::from(matches.value_of(ARG_BLUR).unwrap()).parse::<f32>()
+            .unwrap_or_else(|_| panic!("‼→ ERROR in {}: sigma expects f32, got {} ←‼", ARG_BLUR, matches.value_of(ARG_BLUR).unwrap()));
 
         cmd_list.commands.push(Box::new(CmdBlur { index, sigma }));
     }
 
     if matches.is_present(ARG_BRIGHTEN) {
         let index = matches.index_of(ARG_BRIGHTEN).unwrap() as u32;
-        let value = String::from(matches.value_of(ARG_BRIGHTEN).unwrap()).parse::<i32>().unwrap_or(0);
+        let value = String::from(matches.value_of(ARG_BRIGHTEN).unwrap()).parse::<i32>()
+            .unwrap_or_else(|_| panic!("‼→ ERROR in {}: value expects i32, got {} ←‼", ARG_BRIGHTEN, matches.value_of(ARG_BRIGHTEN).unwrap()));
 
         cmd_list.commands.push(Box::new(CmdBrighten { index, value }));
     }
 
     if matches.is_present(ARG_CONTRAST) {
         let index = matches.index_of(ARG_CONTRAST).unwrap() as u32;
-        let value = String::from(matches.value_of(ARG_CONTRAST).unwrap()).parse::<f32>().unwrap_or(0.0);
+        let value = String::from(matches.value_of(ARG_CONTRAST).unwrap()).parse::<f32>()
+            .unwrap_or_else(|_| panic!("‼→ ERROR in {}: value expects f32, got {} ←‼", ARG_CONTRAST, matches.value_of(ARG_CONTRAST).unwrap()));
 
         cmd_list.commands.push(Box::new(CmdContrast { index, value }));
     }
 
     if matches.is_present(ARG_COMBINE_TL) {
-        //cmd_list.commands.push(Box::new(create_cmd_combine(matches.clone(), ARG_COMBINE_TL)));
+        cmd_list.commands.push(Box::new(create_cmd_combine(matches.clone(), ARG_COMBINE_TL)));
     }
     if matches.is_present(ARG_COMBINE_TR) {
-        //cmd_list.commands.push(Box::new(create_cmd_combine(matches.clone(), ARG_COMBINE_TR)));
+        cmd_list.commands.push(Box::new(create_cmd_combine(matches.clone(), ARG_COMBINE_TR)));
     }
     if matches.is_present(ARG_COMBINE_BL) {
-        //cmd_list.commands.push(Box::new(create_cmd_combine(matches.clone(), ARG_COMBINE_BL)));
+        cmd_list.commands.push(Box::new(create_cmd_combine(matches.clone(), ARG_COMBINE_BL)));
     }
     if matches.is_present(ARG_COMBINE_BR) {
-        //cmd_list.commands.push(Box::new(create_cmd_combine(matches.clone(), ARG_COMBINE_BR)));
+        cmd_list.commands.push(Box::new(create_cmd_combine(matches.clone(), ARG_COMBINE_BR)));
     }
 
     if matches.is_present(ARG_CROP_BOX) {
         let index = matches.index_of(ARG_CROP_BOX).unwrap() as u32;
         let values: Vec<_> = matches.values_of(ARG_CROP_BOX).unwrap().collect();
 
-        let x = values[0].parse::<u32>().unwrap_or(0);
-        let y = values[1].parse::<u32>().unwrap_or(0);
-        let width = values[2].parse::<u32>().unwrap_or(0);
-        let height = values[3].parse::<u32>().unwrap_or(0);
+        let x = values[0].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: x expects u32, got {} ←‼", ARG_CROP_BOX, values[0]));
+        let y = values[1].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: y expects u32, got {} ←‼", ARG_CROP_BOX, values[1]));
+        let width = values[2].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: width expects u32, got {} ←‼", ARG_CROP_BOX, values[2]));
+        let height = values[3].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: height expects u32, got {} ←‼", ARG_CROP_BOX, values[3]));
 
         let crop = CmdCrop { index, config: Crop::Box(x, y, width, height) };
         cmd_list.commands.push(Box::new(crop));
@@ -287,8 +365,8 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         let index = matches.index_of(ARG_CROP_RATIO).unwrap() as u32;
         let values: Vec<_> = matches.values_of(ARG_CROP_RATIO).unwrap().collect();
 
-        let x_ratio = values[0].parse::<f32>().unwrap_or(0.0);
-        let y_ratio = values[1].parse::<f32>().unwrap_or(0.0);
+        let x_ratio = values[0].parse::<f32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: x_ratio expects f32, got {} ←‼", ARG_CROP_RATIO, values[0]));
+        let y_ratio = values[1].parse::<f32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: y_ratio expects f32, got {} ←‼", ARG_CROP_RATIO, values[1]));
 
         let crop = CmdCrop { index, config: Crop::Ratio(x_ratio, y_ratio) };
         cmd_list.commands.push(Box::new(crop));
@@ -317,7 +395,8 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
 
     if matches.is_present(ARG_HUEROTATE) {
         let index = matches.index_of(ARG_HUEROTATE).unwrap() as u32;
-        let degree = String::from(matches.value_of(ARG_HUEROTATE).unwrap()).parse::<i32>().unwrap_or(0);
+        let degree = String::from(matches.value_of(ARG_HUEROTATE).unwrap()).parse::<i32>()
+            .unwrap_or_else(|_| panic!("‼→ ERROR in {}: degree expects i32, got {} ←‼", ARG_HUEROTATE, matches.value_of(ARG_HUEROTATE).unwrap()));
 
         let huerotate = CmdHuerotate { index, degree };
         cmd_list.commands.push(Box::new(huerotate));
@@ -334,9 +413,9 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         let index = matches.index_of(ARG_RESIZE).unwrap() as u32;
         let values: Vec<_> = matches.values_of(ARG_RESIZE).unwrap().collect();
 
-        let width = values[0].parse::<u32>().unwrap_or(0);
-        let height = values[1].parse::<u32>().unwrap_or(0);
-        let exact = values[2].parse::<bool>().unwrap_or(false);
+        let width = values[0].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: width expects u32, got {} ←‼", ARG_RESIZE, values[0]));
+        let height = values[1].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: height expects u32, got {} ←‼", ARG_RESIZE, values[1]));
+        let exact = values[2].parse::<bool>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: exact expects bool, got {} ←‼", ARG_RESIZE, values[2]));
 
         let size;
         if height == 0 {
@@ -406,8 +485,8 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         let index = matches.index_of(ARG_UNSHARPEN).unwrap() as u32;
         let values: Vec<_> = matches.values_of(ARG_UNSHARPEN).unwrap().collect();
 
-        let sigma = values[0].parse::<f32>().unwrap_or(0.0);
-        let threshold = values[1].parse::<i32>().unwrap_or(0);
+        let sigma = values[0].parse::<f32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: sigma expects f32, got {} ←‼", ARG_UNSHARPEN, values[0]));
+        let threshold = values[1].parse::<i32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: threshold expects i32, got {} ←‼", ARG_UNSHARPEN, values[1]));
 
         let unsharpen = CmdUnsharpen { index, sigma, threshold };
         cmd_list.commands.push(Box::new(unsharpen));
@@ -417,14 +496,47 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
     cmd_list
 }
 
-/*
+/// This function is parsing the given values for the argument of the combine-command
+///
+/// Returns a new `CmdCombine` struct
+///
+/// # Arguments
+///
+/// * `matches` - The `ArgMatches` struct from clap, containing the provided arguments
+/// * `arg` - The argument name of the combine-command to derive the correct position
+///
+/// # Examples
+/// ```
+/// use clap::{App, Arg, ArgMatches};
+/// use crate::commands::CmdCombine;
+///
+/// pub use thumbnailer::BoxPosition;
+///
+/// const ARG_COMBINE_TL: &str = "combine_tl";
+/// const ARG_COMBINE_TR: &str = "combine_tr";
+/// const ARG_COMBINE_BL: &str = "combine_bl";
+/// const ARG_COMBINE_BR: &str = "combine_br";
+///
+/// let matches = App::new("MyApp")
+///     .arg(Arg::with_name(ARG_COMBINE_TL)
+///         .long(ARG_COMBINE_TL)
+///         .value_name("IMAGE_PATH")
+///         .value_name("x_offset")
+///         .value_name("y_offset")
+///         .help("Inserts a photo, such as a logo given as path, into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the TOP LEFT corner of the photo.")
+///         .takes_value(true))
+///     .get_matches_from(vec!["MyApp", "--combine_tl", "img\test.JPG", "5", "10"]);
+///
+/// let combine = create_cmd_combine(matches, "combine_tl");
+/// combine.print();
+/// ```
 fn create_cmd_combine(matches: ArgMatches<'static>, arg: &str) -> CmdCombine {
     let index = matches.index_of(arg).unwrap() as u32;
     let values: Vec<_> = matches.values_of(arg).unwrap().collect();
 
     let image = values[0];
-    let x_offset = String::from(values[1]).parse::<u32>().unwrap_or(0);
-    let y_offset = String::from(values[2]).parse::<u32>().unwrap_or(0);
+    let x_offset = String::from(values[1]).parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: x_offset expects u32, got {} ←‼", arg, values[1]));
+    let y_offset = String::from(values[2]).parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: y_offset expects u32, got {} ←‼", arg, values[2]));
 
     let position = match arg {
         _ if arg == ARG_COMBINE_TL => BoxPosition::TopLeft(x_offset, y_offset),
@@ -434,17 +546,60 @@ fn create_cmd_combine(matches: ArgMatches<'static>, arg: &str) -> CmdCombine {
         _ => BoxPosition::TopLeft(x_offset, y_offset),
     };
 
-    CmdCombine {index, image: StaticThumbnail{ image: open(image)}, position}
-}
- */
+    let path_buf = Path::new(image).to_path_buf();
+    let thumbnail = Thumbnail::load(&path_buf);
 
+    let static_thumbnail = match thumbnail {
+        Ok(mut t) => t.to_static_copy(),
+        Err(_e) => panic!("ERROR: the supplied image in --{} was not found", arg)
+    };
+
+    CmdCombine { index, image: static_thumbnail.expect("ERROR: Could not convert Thumbnail to StaticThumbnail"), position }
+}
+
+
+/// This function is parsing the given values for the argument of the resize_filter-command
+///
+/// Returns a new `CmdResizeFilter` struct
+///
+/// # Arguments
+///
+/// * `matches` - The `ArgMatches` struct from clap, containing the provided arguments
+/// * `arg` - The argument name of the resize_filter-command to derive the correct filter
+///
+/// # Examples
+/// ```
+/// use clap::{App, Arg, ArgMatches};
+/// use crate::commands::CmdResizeFilter;
+///
+/// pub use thumbnailer::{ResampleFilter, Resize};
+///
+/// const ARG_RESIZE_N: &str = "resize_n";
+/// const ARG_RESIZE_T: &str = "resize_t";
+/// const ARG_RESIZE_C: &str = "resize_c";
+/// const ARG_RESIZE_G: &str = "resize_g";
+/// const ARG_RESIZE_L: &str = "resize_l";
+///
+/// let matches = App::new("MyApp")
+///     .arg(Arg::with_name(ARG_RESIZE_N)
+///         .long(ARG_RESIZE_N)
+///         .value_name("width")
+///         .value_name("height")
+///         .value_name("exact")
+///         .help("Resize the supplied image(s) to the specified dimensions. nwidth and nheight are the new dimensions. exact as bool forces the exact resizing, but the aspect ratio may change. Nearest is the used filter (Nearest Neighbor Filter). To resize only by one dimension, set the other to 0.")
+///         .takes_value(true))
+///     .get_matches_from(vec!["MyApp", "--resize_n", "400", "300", "false"]);
+///
+/// let resize_filter = create_cmd_resize_filter(matches, "resize_n");
+/// resize_filter.print();
+/// ```
 fn create_cmd_resize_filter(matches: ArgMatches<'static>, arg: &str) -> CmdResizeFilter {
     let index = matches.index_of(arg).unwrap() as u32;
     let values: Vec<_> = matches.values_of(arg).unwrap().collect();
 
-    let width = values[0].parse::<u32>().unwrap_or(0);
-    let height = values[1].parse::<u32>().unwrap_or(0);
-    let exact = values[2].parse::<bool>().unwrap_or(false);
+    let width = values[0].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: width expects u32, got {} ←‼", arg, values[0]));
+    let height = values[1].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: height expects u32, got {} ←‼", arg, values[1]));
+    let exact = values[2].parse::<bool>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: exact expects bool, got {} ←‼", arg, values[2]));
 
     let size;
     if height == 0 {
@@ -469,19 +624,53 @@ fn create_cmd_resize_filter(matches: ArgMatches<'static>, arg: &str) -> CmdResiz
     CmdResizeFilter { index, size, filter }
 }
 
+/// This function is parsing the given values for the argument of the text-command
+///
+/// Returns a new `CmdText` struct
+///
+/// # Arguments
+///
+/// * `matches` - The `ArgMatches` struct from clap, containing the provided arguments
+/// * `arg` - The argument name of the text-command to derive the correct position
+///
+/// # Examples
+/// ```
+/// use clap::{App, Arg, ArgMatches};
+/// use crate::commands::CmdText;
+///
+/// pub use thumbnailer::BoxPosition;
+///
+/// const ARG_TEXT_TL: &str = "text_tl";
+/// const ARG_TEXT_TR: &str = "text_tr";
+/// const ARG_TEXT_BL: &str = "text_bl";
+/// const ARG_TEXT_BR: &str = "text_br";
+///
+/// let matches = App::new("MyApp")
+///     .arg(Arg::with_name(ARG_TEXT_TL)
+///         .long(ARG_TEXT_TL)
+///         .value_name("text")
+///         .value_name("x_offset")
+///         .value_name("y_offset")
+///         .help("Inserts a text as String into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the TOP LEFT corner of the photo.")
+///         .takes_value(true))
+///     .get_matches_from(vec!["MyApp", "--text_tl", "test", "5", "10"]);
+///
+/// let text = create_cmd_text(matches, "text_tl");
+/// text.print();
+/// ```
 fn create_cmd_text(matches: ArgMatches<'static>, arg: &str) -> CmdText {
     let index = matches.index_of(arg).unwrap() as u32;
     let values: Vec<_> = matches.values_of(arg).unwrap().collect();
 
     let text = String::from(values[0]);
-    let x_offset = String::from(values[1]).parse::<u32>().unwrap_or(0);
-    let y_offset = String::from(values[2]).parse::<u32>().unwrap_or(0);
+    let x_offset = String::from(values[1]).parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: x_offset expects u32, got {} ←‼", arg, values[1]));
+    let y_offset = String::from(values[2]).parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: y_offset expects u32, got {} ←‼", arg, values[2]));
 
     let position = match arg {
-        _ if arg == ARG_COMBINE_TL => BoxPosition::TopLeft(x_offset, y_offset),
-        _ if arg == ARG_COMBINE_TR => BoxPosition::TopRight(x_offset, y_offset),
-        _ if arg == ARG_COMBINE_BL => BoxPosition::BottomLeft(x_offset, y_offset),
-        _ if arg == ARG_COMBINE_BR => BoxPosition::BottomRight(x_offset, y_offset),
+        _ if arg == ARG_TEXT_TL => BoxPosition::TopLeft(x_offset, y_offset),
+        _ if arg == ARG_TEXT_TR => BoxPosition::TopRight(x_offset, y_offset),
+        _ if arg == ARG_TEXT_BL => BoxPosition::BottomLeft(x_offset, y_offset),
+        _ if arg == ARG_TEXT_BR => BoxPosition::BottomRight(x_offset, y_offset),
         _ => BoxPosition::TopLeft(x_offset, y_offset),
     };
 
