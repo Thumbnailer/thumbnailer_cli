@@ -1,8 +1,7 @@
 use std::path::Path;
 
 use clap::{App, Arg, ArgMatches};
-pub use thumbnailer::{BoxPosition, Crop, Exif, Orientation, ResampleFilter, Resize};
-use thumbnailer::Thumbnail;
+use thumbnailer::{BoxPosition, Crop, Exif, Orientation, ResampleFilter, Resize, Rotation, Thumbnail};
 
 use crate::commands::{CmdBlur, CmdBrighten, CmdCombine, CmdContrast, CmdCrop, CmdExif, CmdFlip, CmdHuerotate, CmdInvert, CmdResize, CmdResizeFilter, CmdRotate, CmdText, CmdUnsharpen};
 use crate::Commands;
@@ -441,7 +440,7 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
 
     if matches.is_present(ARG_ROTATE90) {
         let index = matches.index_of(ARG_ROTATE90).unwrap() as u32;
-        let degree = 90 * (matches.occurrences_of(ARG_ROTATE90) as i32 % 360);
+        let degree = (90 * (matches.occurrences_of(ARG_ROTATE90) as i32)) % 360;
 
         match degree {
             90 => { cmd_list.commands.push(Box::new(CmdRotate::new(index, Rotation::Rotate90))); },

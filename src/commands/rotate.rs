@@ -61,6 +61,6 @@ impl Command for CmdRotate {
     /// println!("{}", rotate.print());
     /// ```
     fn print(&self) -> String {
-        format!("► {:02}. rotae:\t\trotation = {:?}", self.index, self.rotation)
+        format!("► {:02}. rotate:\t\trotation = {:?}", self.index, self.rotation)
     }
 }
