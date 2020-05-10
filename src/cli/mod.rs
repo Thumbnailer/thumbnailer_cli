@@ -1,9 +1,14 @@
 use std::path::Path;
 
 use clap::{App, Arg, ArgMatches};
-use thumbnailer::{BoxPosition, Crop, Exif, Orientation, ResampleFilter, Resize, Rotation, Thumbnail};
+use thumbnailer::{
+    BoxPosition, Crop, Exif, Orientation, ResampleFilter, Resize, Rotation, Thumbnail,
+};
 
-use crate::commands::{CmdBlur, CmdBrighten, CmdCombine, CmdContrast, CmdCrop, CmdExif, CmdFlip, CmdHuerotate, CmdInvert, CmdResize, CmdResizeFilter, CmdRotate, CmdText, CmdUnsharpen};
+use crate::commands::{
+    CmdBlur, CmdBrighten, CmdCombine, CmdContrast, CmdCrop, CmdExif, CmdFlip, CmdHuerotate,
+    CmdInvert, CmdResize, CmdResizeFilter, CmdRotate, CmdText, CmdUnsharpen,
+};
 use crate::Commands;
 
 pub const NAME_FILE_IN: &str = "INPUT_PATH";
@@ -312,87 +317,174 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
 
     if matches.is_present(ARG_BLUR) {
         let index = matches.index_of(ARG_BLUR).unwrap() as u32;
-        let sigma = String::from(matches.value_of(ARG_BLUR).unwrap()).parse::<f32>()
-            .unwrap_or_else(|_| panic!("‼→ ERROR in {}: sigma expects f32, got {} ←‼", ARG_BLUR, matches.value_of(ARG_BLUR).unwrap()));
+        let sigma = String::from(matches.value_of(ARG_BLUR).unwrap())
+            .parse::<f32>()
+            .unwrap_or_else(|_| {
+                panic!(
+                    "‼→ ERROR in {}: sigma expects f32, got {} ←‼",
+                    ARG_BLUR,
+                    matches.value_of(ARG_BLUR).unwrap()
+                )
+            });
 
         cmd_list.commands.push(Box::new(CmdBlur::new(index, sigma)));
     }
 
     if matches.is_present(ARG_BRIGHTEN) {
         let index = matches.index_of(ARG_BRIGHTEN).unwrap() as u32;
-        let value = String::from(matches.value_of(ARG_BRIGHTEN).unwrap()).parse::<i32>()
-            .unwrap_or_else(|_| panic!("‼→ ERROR in {}: value expects i32, got {} ←‼", ARG_BRIGHTEN, matches.value_of(ARG_BRIGHTEN).unwrap()));
+        let value = String::from(matches.value_of(ARG_BRIGHTEN).unwrap())
+            .parse::<i32>()
+            .unwrap_or_else(|_| {
+                panic!(
+                    "‼→ ERROR in {}: value expects i32, got {} ←‼",
+                    ARG_BRIGHTEN,
+                    matches.value_of(ARG_BRIGHTEN).unwrap()
+                )
+            });
 
-        cmd_list.commands.push(Box::new(CmdBrighten::new(index, value)));
+        cmd_list
+            .commands
+            .push(Box::new(CmdBrighten::new(index, value)));
     }
 
     if matches.is_present(ARG_CONTRAST) {
         let index = matches.index_of(ARG_CONTRAST).unwrap() as u32;
-        let value = String::from(matches.value_of(ARG_CONTRAST).unwrap()).parse::<f32>()
-            .unwrap_or_else(|_| panic!("‼→ ERROR in {}: value expects f32, got {} ←‼", ARG_CONTRAST, matches.value_of(ARG_CONTRAST).unwrap()));
+        let value = String::from(matches.value_of(ARG_CONTRAST).unwrap())
+            .parse::<f32>()
+            .unwrap_or_else(|_| {
+                panic!(
+                    "‼→ ERROR in {}: value expects f32, got {} ←‼",
+                    ARG_CONTRAST,
+                    matches.value_of(ARG_CONTRAST).unwrap()
+                )
+            });
 
-        cmd_list.commands.push(Box::new(CmdContrast::new(index, value)));
+        cmd_list
+            .commands
+            .push(Box::new(CmdContrast::new(index, value)));
     }
 
     if matches.is_present(ARG_COMBINE_TL) {
-        cmd_list.commands.push(Box::new(create_cmd_combine(matches.clone(), ARG_COMBINE_TL)));
+        cmd_list.commands.push(Box::new(create_cmd_combine(
+            matches.clone(),
+            ARG_COMBINE_TL,
+        )));
     }
     if matches.is_present(ARG_COMBINE_TR) {
-        cmd_list.commands.push(Box::new(create_cmd_combine(matches.clone(), ARG_COMBINE_TR)));
+        cmd_list.commands.push(Box::new(create_cmd_combine(
+            matches.clone(),
+            ARG_COMBINE_TR,
+        )));
     }
     if matches.is_present(ARG_COMBINE_BL) {
-        cmd_list.commands.push(Box::new(create_cmd_combine(matches.clone(), ARG_COMBINE_BL)));
+        cmd_list.commands.push(Box::new(create_cmd_combine(
+            matches.clone(),
+            ARG_COMBINE_BL,
+        )));
     }
     if matches.is_present(ARG_COMBINE_BR) {
-        cmd_list.commands.push(Box::new(create_cmd_combine(matches.clone(), ARG_COMBINE_BR)));
+        cmd_list.commands.push(Box::new(create_cmd_combine(
+            matches.clone(),
+            ARG_COMBINE_BR,
+        )));
     }
 
     if matches.is_present(ARG_CROP_BOX) {
         let index = matches.index_of(ARG_CROP_BOX).unwrap() as u32;
         let values: Vec<_> = matches.values_of(ARG_CROP_BOX).unwrap().collect();
 
-        let x = values[0].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: x expects u32, got {} ←‼", ARG_CROP_BOX, values[0]));
-        let y = values[1].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: y expects u32, got {} ←‼", ARG_CROP_BOX, values[1]));
-        let width = values[2].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: width expects u32, got {} ←‼", ARG_CROP_BOX, values[2]));
-        let height = values[3].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: height expects u32, got {} ←‼", ARG_CROP_BOX, values[3]));
+        let x = values[0].parse::<u32>().unwrap_or_else(|_| {
+            panic!(
+                "‼→ ERROR in {}: x expects u32, got {} ←‼",
+                ARG_CROP_BOX, values[0]
+            )
+        });
+        let y = values[1].parse::<u32>().unwrap_or_else(|_| {
+            panic!(
+                "‼→ ERROR in {}: y expects u32, got {} ←‼",
+                ARG_CROP_BOX, values[1]
+            )
+        });
+        let width = values[2].parse::<u32>().unwrap_or_else(|_| {
+            panic!(
+                "‼→ ERROR in {}: width expects u32, got {} ←‼",
+                ARG_CROP_BOX, values[2]
+            )
+        });
+        let height = values[3].parse::<u32>().unwrap_or_else(|_| {
+            panic!(
+                "‼→ ERROR in {}: height expects u32, got {} ←‼",
+                ARG_CROP_BOX, values[3]
+            )
+        });
 
-        cmd_list.commands.push(Box::new(CmdCrop::new(index, Crop::Box(x, y, width, height))));
+        cmd_list.commands.push(Box::new(CmdCrop::new(
+            index,
+            Crop::Box(x, y, width, height),
+        )));
     }
 
     if matches.is_present(ARG_CROP_RATIO) {
         let index = matches.index_of(ARG_CROP_RATIO).unwrap() as u32;
         let values: Vec<_> = matches.values_of(ARG_CROP_RATIO).unwrap().collect();
 
-        let x_ratio = values[0].parse::<f32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: x_ratio expects f32, got {} ←‼", ARG_CROP_RATIO, values[0]));
-        let y_ratio = values[1].parse::<f32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: y_ratio expects f32, got {} ←‼", ARG_CROP_RATIO, values[1]));
+        let x_ratio = values[0].parse::<f32>().unwrap_or_else(|_| {
+            panic!(
+                "‼→ ERROR in {}: x_ratio expects f32, got {} ←‼",
+                ARG_CROP_RATIO, values[0]
+            )
+        });
+        let y_ratio = values[1].parse::<f32>().unwrap_or_else(|_| {
+            panic!(
+                "‼→ ERROR in {}: y_ratio expects f32, got {} ←‼",
+                ARG_CROP_RATIO, values[1]
+            )
+        });
 
-        cmd_list.commands.push(Box::new(CmdCrop::new(index, Crop::Ratio(x_ratio, y_ratio))));
+        cmd_list
+            .commands
+            .push(Box::new(CmdCrop::new(index, Crop::Ratio(x_ratio, y_ratio))));
     }
 
     if matches.is_present(ARG_EXIF) {
         let index = matches.index_of(ARG_EXIF).unwrap() as u32;
 
-        cmd_list.commands.push(Box::new(CmdExif::new(index, Exif::Keep)));
+        cmd_list
+            .commands
+            .push(Box::new(CmdExif::new(index, Exif::Keep)));
     }
 
     if matches.is_present(ARG_FLIP_HORIZONTAL) {
         let index = matches.index_of(ARG_FLIP_HORIZONTAL).unwrap() as u32;
 
-        cmd_list.commands.push(Box::new(CmdFlip::new(index, Orientation::Horizontal)));
+        cmd_list
+            .commands
+            .push(Box::new(CmdFlip::new(index, Orientation::Horizontal)));
     }
 
     if matches.is_present(ARG_FLIP_VERTICAL) {
         let index = matches.index_of(ARG_FLIP_VERTICAL).unwrap() as u32;
 
-        cmd_list.commands.push(Box::new(CmdFlip::new(index, Orientation::Vertical)));
+        cmd_list
+            .commands
+            .push(Box::new(CmdFlip::new(index, Orientation::Vertical)));
     }
 
     if matches.is_present(ARG_HUEROTATE) {
         let index = matches.index_of(ARG_HUEROTATE).unwrap() as u32;
-        let degree = String::from(matches.value_of(ARG_HUEROTATE).unwrap()).parse::<i32>()
-            .unwrap_or_else(|_| panic!("‼→ ERROR in {}: degree expects i32, got {} ←‼", ARG_HUEROTATE, matches.value_of(ARG_HUEROTATE).unwrap()));
+        let degree = String::from(matches.value_of(ARG_HUEROTATE).unwrap())
+            .parse::<i32>()
+            .unwrap_or_else(|_| {
+                panic!(
+                    "‼→ ERROR in {}: degree expects i32, got {} ←‼",
+                    ARG_HUEROTATE,
+                    matches.value_of(ARG_HUEROTATE).unwrap()
+                )
+            });
 
-        cmd_list.commands.push(Box::new(CmdHuerotate::new(index, degree)));
+        cmd_list
+            .commands
+            .push(Box::new(CmdHuerotate::new(index, degree)));
     }
 
     if matches.is_present(ARG_INVERT) {
@@ -405,9 +497,24 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         let index = matches.index_of(ARG_RESIZE).unwrap() as u32;
         let values: Vec<_> = matches.values_of(ARG_RESIZE).unwrap().collect();
 
-        let width = values[0].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: width expects u32, got {} ←‼", ARG_RESIZE, values[0]));
-        let height = values[1].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: height expects u32, got {} ←‼", ARG_RESIZE, values[1]));
-        let exact = values[2].parse::<bool>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: exact expects bool, got {} ←‼", ARG_RESIZE, values[2]));
+        let width = values[0].parse::<u32>().unwrap_or_else(|_| {
+            panic!(
+                "‼→ ERROR in {}: width expects u32, got {} ←‼",
+                ARG_RESIZE, values[0]
+            )
+        });
+        let height = values[1].parse::<u32>().unwrap_or_else(|_| {
+            panic!(
+                "‼→ ERROR in {}: height expects u32, got {} ←‼",
+                ARG_RESIZE, values[1]
+            )
+        });
+        let exact = values[2].parse::<bool>().unwrap_or_else(|_| {
+            panic!(
+                "‼→ ERROR in {}: exact expects bool, got {} ←‼",
+                ARG_RESIZE, values[2]
+            )
+        });
 
         let size;
         if height == 0 {
@@ -419,23 +526,40 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         } else {
             size = Resize::ExactBox(width, height);
         }
-        cmd_list.commands.push(Box::new(CmdResize::new(index, size)));
+        cmd_list
+            .commands
+            .push(Box::new(CmdResize::new(index, size)));
     }
 
     if matches.is_present(ARG_RESIZE_N) {
-        cmd_list.commands.push(Box::new(create_cmd_resize_filter(matches.clone(), ARG_RESIZE_N)));
+        cmd_list.commands.push(Box::new(create_cmd_resize_filter(
+            matches.clone(),
+            ARG_RESIZE_N,
+        )));
     }
     if matches.is_present(ARG_RESIZE_T) {
-        cmd_list.commands.push(Box::new(create_cmd_resize_filter(matches.clone(), ARG_RESIZE_T)));
+        cmd_list.commands.push(Box::new(create_cmd_resize_filter(
+            matches.clone(),
+            ARG_RESIZE_T,
+        )));
     }
     if matches.is_present(ARG_RESIZE_C) {
-        cmd_list.commands.push(Box::new(create_cmd_resize_filter(matches.clone(), ARG_RESIZE_C)));
+        cmd_list.commands.push(Box::new(create_cmd_resize_filter(
+            matches.clone(),
+            ARG_RESIZE_C,
+        )));
     }
     if matches.is_present(ARG_RESIZE_G) {
-        cmd_list.commands.push(Box::new(create_cmd_resize_filter(matches.clone(), ARG_RESIZE_G)));
+        cmd_list.commands.push(Box::new(create_cmd_resize_filter(
+            matches.clone(),
+            ARG_RESIZE_G,
+        )));
     }
     if matches.is_present(ARG_RESIZE_L) {
-        cmd_list.commands.push(Box::new(create_cmd_resize_filter(matches.clone(), ARG_RESIZE_L)));
+        cmd_list.commands.push(Box::new(create_cmd_resize_filter(
+            matches.clone(),
+            ARG_RESIZE_L,
+        )));
     }
 
     if matches.is_present(ARG_ROTATE90) {
@@ -443,44 +567,78 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         let degree = (90 * (matches.occurrences_of(ARG_ROTATE90) as i32)) % 360;
 
         match degree {
-            90 => { cmd_list.commands.push(Box::new(CmdRotate::new(index, Rotation::Rotate90))); },
-            180 => { cmd_list.commands.push(Box::new(CmdRotate::new(index, Rotation::Rotate180))); },
-            270 => { cmd_list.commands.push(Box::new(CmdRotate::new(index, Rotation::Rotate270))); },
-            _ => {},
+            90 => {
+                cmd_list
+                    .commands
+                    .push(Box::new(CmdRotate::new(index, Rotation::Rotate90)));
+            }
+            180 => {
+                cmd_list
+                    .commands
+                    .push(Box::new(CmdRotate::new(index, Rotation::Rotate180)));
+            }
+            270 => {
+                cmd_list
+                    .commands
+                    .push(Box::new(CmdRotate::new(index, Rotation::Rotate270)));
+            }
+            _ => {}
         }
     }
 
     if matches.is_present(ARG_ROTATE180) {
         let index = matches.index_of(ARG_ROTATE180).unwrap() as u32;
 
-        cmd_list.commands.push(Box::new(CmdRotate::new(index, Rotation::Rotate180)));
+        cmd_list
+            .commands
+            .push(Box::new(CmdRotate::new(index, Rotation::Rotate180)));
     }
 
     if matches.is_present(ARG_ROTATE270) {
         let index = matches.index_of(ARG_ROTATE270).unwrap() as u32;
 
-        cmd_list.commands.push(Box::new(CmdRotate::new(index, Rotation::Rotate270)));
+        cmd_list
+            .commands
+            .push(Box::new(CmdRotate::new(index, Rotation::Rotate270)));
     }
 
     if matches.is_present(ARG_TEXT_TL) {
-        cmd_list.commands.push(Box::new(create_cmd_text(matches.clone(), ARG_TEXT_TL)));
+        cmd_list
+            .commands
+            .push(Box::new(create_cmd_text(matches.clone(), ARG_TEXT_TL)));
     }
     if matches.is_present(ARG_TEXT_TR) {
-        cmd_list.commands.push(Box::new(create_cmd_text(matches.clone(), ARG_TEXT_TR)));
+        cmd_list
+            .commands
+            .push(Box::new(create_cmd_text(matches.clone(), ARG_TEXT_TR)));
     }
     if matches.is_present(ARG_TEXT_BL) {
-        cmd_list.commands.push(Box::new(create_cmd_text(matches.clone(), ARG_TEXT_BL)));
+        cmd_list
+            .commands
+            .push(Box::new(create_cmd_text(matches.clone(), ARG_TEXT_BL)));
     }
     if matches.is_present(ARG_TEXT_BR) {
-        cmd_list.commands.push(Box::new(create_cmd_text(matches.clone(), ARG_TEXT_BR)));
+        cmd_list
+            .commands
+            .push(Box::new(create_cmd_text(matches.clone(), ARG_TEXT_BR)));
     }
 
     if matches.is_present(ARG_UNSHARPEN) {
         let index = matches.index_of(ARG_UNSHARPEN).unwrap() as u32;
         let values: Vec<_> = matches.values_of(ARG_UNSHARPEN).unwrap().collect();
 
-        let sigma = values[0].parse::<f32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: sigma expects f32, got {} ←‼", ARG_UNSHARPEN, values[0]));
-        let threshold = values[1].parse::<i32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: threshold expects i32, got {} ←‼", ARG_UNSHARPEN, values[1]));
+        let sigma = values[0].parse::<f32>().unwrap_or_else(|_| {
+            panic!(
+                "‼→ ERROR in {}: sigma expects f32, got {} ←‼",
+                ARG_UNSHARPEN, values[0]
+            )
+        });
+        let threshold = values[1].parse::<i32>().unwrap_or_else(|_| {
+            panic!(
+                "‼→ ERROR in {}: threshold expects i32, got {} ←‼",
+                ARG_UNSHARPEN, values[1]
+            )
+        });
 
         let unsharpen = CmdUnsharpen::new(index, sigma, threshold);
         cmd_list.commands.push(Box::new(unsharpen));
@@ -529,8 +687,18 @@ fn create_cmd_combine(matches: ArgMatches<'static>, arg: &str) -> CmdCombine {
     let values: Vec<_> = matches.values_of(arg).unwrap().collect();
 
     let image = values[0];
-    let x_offset = String::from(values[1]).parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: x_offset expects u32, got {} ←‼", arg, values[1]));
-    let y_offset = String::from(values[2]).parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: y_offset expects u32, got {} ←‼", arg, values[2]));
+    let x_offset = String::from(values[1]).parse::<u32>().unwrap_or_else(|_| {
+        panic!(
+            "‼→ ERROR in {}: x_offset expects u32, got {} ←‼",
+            arg, values[1]
+        )
+    });
+    let y_offset = String::from(values[2]).parse::<u32>().unwrap_or_else(|_| {
+        panic!(
+            "‼→ ERROR in {}: y_offset expects u32, got {} ←‼",
+            arg, values[2]
+        )
+    });
 
     let position = match arg {
         _ if arg == ARG_COMBINE_TL => BoxPosition::TopLeft(x_offset, y_offset),
@@ -540,14 +708,22 @@ fn create_cmd_combine(matches: ArgMatches<'static>, arg: &str) -> CmdCombine {
         _ => BoxPosition::TopLeft(x_offset, y_offset),
     };
 
-    let mut thumbnail = Thumbnail::load(Path::new(image).to_path_buf())
-        .unwrap_or_else(|_| panic!("‼→ ERROR in {}: failed to load the photo with the supplied path ←‼", arg));
+    let mut thumbnail = Thumbnail::load(Path::new(image).to_path_buf()).unwrap_or_else(|_| {
+        panic!(
+            "‼→ ERROR in {}: failed to load the photo with the supplied path ←‼",
+            arg
+        )
+    });
 
-    let static_thumbnail = thumbnail.clone_static_copy().unwrap_or_else(|| panic!("‼→ ERROR in {}: failed to convert Thumbnail to StaticThumbnail ←‼", arg));
+    let static_thumbnail = thumbnail.clone_static_copy().unwrap_or_else(|| {
+        panic!(
+            "‼→ ERROR in {}: failed to convert Thumbnail to StaticThumbnail ←‼",
+            arg
+        )
+    });
 
     CmdCombine::new(index, static_thumbnail, position)
 }
-
 
 /// This function is parsing the given values for the argument of the resize_filter-command
 ///
@@ -588,9 +764,24 @@ fn create_cmd_resize_filter(matches: ArgMatches<'static>, arg: &str) -> CmdResiz
     let index = matches.index_of(arg).unwrap() as u32;
     let values: Vec<_> = matches.values_of(arg).unwrap().collect();
 
-    let width = values[0].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: width expects u32, got {} ←‼", arg, values[0]));
-    let height = values[1].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: height expects u32, got {} ←‼", arg, values[1]));
-    let exact = values[2].parse::<bool>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: exact expects bool, got {} ←‼", arg, values[2]));
+    let width = values[0].parse::<u32>().unwrap_or_else(|_| {
+        panic!(
+            "‼→ ERROR in {}: width expects u32, got {} ←‼",
+            arg, values[0]
+        )
+    });
+    let height = values[1].parse::<u32>().unwrap_or_else(|_| {
+        panic!(
+            "‼→ ERROR in {}: height expects u32, got {} ←‼",
+            arg, values[1]
+        )
+    });
+    let exact = values[2].parse::<bool>().unwrap_or_else(|_| {
+        panic!(
+            "‼→ ERROR in {}: exact expects bool, got {} ←‼",
+            arg, values[2]
+        )
+    });
 
     let size;
     if height == 0 {
@@ -654,8 +845,18 @@ fn create_cmd_text(matches: ArgMatches<'static>, arg: &str) -> CmdText {
     let values: Vec<_> = matches.values_of(arg).unwrap().collect();
 
     let text = String::from(values[0]);
-    let x_offset = String::from(values[1]).parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: x_offset expects u32, got {} ←‼", arg, values[1]));
-    let y_offset = String::from(values[2]).parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: y_offset expects u32, got {} ←‼", arg, values[2]));
+    let x_offset = String::from(values[1]).parse::<u32>().unwrap_or_else(|_| {
+        panic!(
+            "‼→ ERROR in {}: x_offset expects u32, got {} ←‼",
+            arg, values[1]
+        )
+    });
+    let y_offset = String::from(values[2]).parse::<u32>().unwrap_or_else(|_| {
+        panic!(
+            "‼→ ERROR in {}: y_offset expects u32, got {} ←‼",
+            arg, values[2]
+        )
+    });
 
     let position = match arg {
         _ if arg == ARG_TEXT_TL => BoxPosition::TopLeft(x_offset, y_offset),

@@ -18,7 +18,11 @@ impl CmdCombine {
     /// * `image`: `StaticThumbmnail` struct as image
     /// * `position`: `BoxPosition` enum as option
     pub fn new(index: u32, image: StaticThumbnail, position: BoxPosition) -> Self {
-        CmdCombine { index, image, position }
+        CmdCombine {
+            index,
+            image,
+            position,
+        }
     }
 }
 
@@ -64,6 +68,9 @@ impl Command for CmdCombine {
     /// println!("{}", combine.print());
     /// ```
     fn print(&self) -> String {
-        format!("► {:02}. combine:\tposition = {:?}", self.index, self.position)
+        format!(
+            "► {:02}. combine:\tposition = {:?}",
+            self.index, self.position
+        )
     }
 }

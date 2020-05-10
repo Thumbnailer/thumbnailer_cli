@@ -18,7 +18,11 @@ impl CmdUnsharpen {
     /// * `sigma`: f32 as measure of how much to unsharpen by
     /// * `threshold`: i32 controls the minimal brightness change or how far apart adjacent tonal values have to be before the filter does anything
     pub fn new(index: u32, sigma: f32, threshold: i32) -> Self {
-        CmdUnsharpen { index, sigma, threshold }
+        CmdUnsharpen {
+            index,
+            sigma,
+            threshold,
+        }
     }
 }
 
@@ -64,6 +68,9 @@ impl Command for CmdUnsharpen {
     /// println!("{}", unsharpen.print());
     /// ```
     fn print(&self) -> String {
-        format!("► {:02}. unsharpen:\tsigma = {}\t\tthreshold = {}", self.index, self.sigma, self.threshold)
+        format!(
+            "► {:02}. unsharpen:\tsigma = {}\t\tthreshold = {}",
+            self.index, self.sigma, self.threshold
+        )
     }
 }

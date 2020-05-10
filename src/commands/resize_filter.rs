@@ -18,7 +18,11 @@ impl CmdResizeFilter {
     /// * `size`: `Resize` enum as option
     /// * `filter`: `ResampleFilter` enum as option
     pub fn new(index: u32, size: Resize, filter: ResampleFilter) -> Self {
-        CmdResizeFilter { index, size, filter }
+        CmdResizeFilter {
+            index,
+            size,
+            filter,
+        }
     }
 }
 
@@ -64,6 +68,9 @@ impl Command for CmdResizeFilter {
     /// println!("{}", resize_filter.print());
     /// ```
     fn print(&self) -> String {
-        format!("► {:02}. resize_filter:\t{:?}\tfilter: {:?}", self.index, self.size, self.filter)
+        format!(
+            "► {:02}. resize_filter:\t{:?}\tfilter: {:?}",
+            self.index, self.size, self.filter
+        )
     }
 }
