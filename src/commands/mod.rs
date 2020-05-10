@@ -6,7 +6,7 @@ use thumbnailer::{BoxPosition, Crop, Exif, Orientation, ResampleFilter, Resize};
 
 /// Commands
 pub trait CommandTrait {
-    fn execute(&self, image: &mut dyn GenericThumbnail);
+    fn execute<'s>(&self, image: &'s mut dyn GenericThumbnail) -> &'s mut dyn GenericThumbnail;
     fn get_index(&self) -> u32;
     fn print(&self) -> String;
 }
@@ -40,14 +40,14 @@ pub struct CmdBlur {
 }
 
 impl CommandTrait for CmdBlur {
-    /// This function calls the actual blur command, depending on the `sigma` given by  `CmdBlur`-struct.
+    /// This function calls the actual blur command, depending on the `sigma` given by `CmdBlur`-struct.
     ///
     /// # Arguments
     ///
     /// * `&self` - the `CmdBlur`-struct
     /// * `image` - The `GenericThumbnail` to be blurred
-    fn execute(&self, image: &mut dyn GenericThumbnail) {
-        GenericThumbnail::blur(image, self.sigma);
+    fn execute<'s>(&self, image: &'s mut dyn GenericThumbnail) -> &'s mut dyn GenericThumbnail {
+        image.blur(self.sigma)
     }
 
     /// This function returns the `index` as u32 of arguments list.
@@ -67,7 +67,7 @@ impl CommandTrait for CmdBlur {
         self.index
     }
 
-    /// This function returns a formatted String, depending on the `index` and the `sigma` given by  `CmdBlur`-struct.
+    /// This function returns a formatted String, depending on the `index` and the `sigma` given by `CmdBlur`-struct.
     ///
     /// # Arguments
     ///
@@ -92,14 +92,14 @@ pub struct CmdBrighten {
 }
 
 impl CommandTrait for CmdBrighten {
-    /// This function calls the actual brighten command, depending on the `value` given by  `CmdBrighten`-struct.
+    /// This function calls the actual brighten command, depending on the `value` given by `CmdBrighten`-struct.
     ///
     /// # Arguments
     ///
     /// * `&self` - the `CmdBrighten`-struct
     /// * `image` - The `GenericThumbnail` to be brightened
-    fn execute(&self, image: &mut dyn GenericThumbnail) {
-        GenericThumbnail::brighten(image, self.value);
+    fn execute<'s>(&self, image: &'s mut dyn GenericThumbnail) -> &'s mut dyn GenericThumbnail {
+        image.brighten(self.value)
     }
 
     /// This function returns the `index` as u32 of arguments list.
@@ -118,7 +118,7 @@ impl CommandTrait for CmdBrighten {
         self.index
     }
 
-    /// This function returns a formatted String, depending on the `index` and the `value` given by  `CmdBrighten`-struct.
+    /// This function returns a formatted String, depending on the `index` and the `value` given by `CmdBrighten`-struct.
     ///
     /// # Arguments
     ///
@@ -143,14 +143,14 @@ pub struct CmdContrast {
 }
 
 impl CommandTrait for CmdContrast {
-    /// This function calls the actual contrast command, depending on the `value` given by  `CmdContrast`-struct.
+    /// This function calls the actual contrast command, depending on the `value` given by `CmdContrast`-struct.
     ///
     /// # Arguments
     ///
     /// * `&self` - the `CmdContrast`-struct
     /// * `image` - The `GenericThumbnail` whose contrast is to be changed
-    fn execute(&self, image: &mut dyn GenericThumbnail) {
-        GenericThumbnail::contrast(image, self.value);
+    fn execute<'s>(&self, image: &'s mut dyn GenericThumbnail) -> &'s mut dyn GenericThumbnail {
+        image.contrast(self.value)
     }
 
     /// This function returns the `index` as u32 of arguments list.
@@ -170,7 +170,7 @@ impl CommandTrait for CmdContrast {
         self.index
     }
 
-    /// This function returns a formatted String, depending on the `index` and the `value` given by  `CmdContrast`-struct.
+    /// This function returns a formatted String, depending on the `index` and the `value` given by `CmdContrast`-struct.
     ///
     /// # Arguments
     ///
@@ -203,8 +203,8 @@ impl CommandTrait for CmdCombine {
     ///
     /// * `&self` - the `CmdCombine`-struct
     /// * `image` - The `GenericThumbnail` in which the photo should be inserted
-    fn execute(&self, image: &mut dyn GenericThumbnail) {
-        GenericThumbnail::combine(image, self.image.clone(), self.position);
+    fn execute<'s>(&self, image: &'s mut dyn GenericThumbnail) -> &'s mut dyn GenericThumbnail {
+        image.combine(self.image.clone(), self.position)
     }
 
     /// This function returns the `index` as u32 of arguments list.
@@ -255,8 +255,8 @@ impl CommandTrait for CmdCrop {
     ///
     /// * `&self` - the `CmdCrop`-struct
     /// * `image` - The `GenericThumbnail` to be cropped
-    fn execute(&self, image: &mut dyn GenericThumbnail) {
-        GenericThumbnail::crop(image, self.config);
+    fn execute<'s>(&self, image: &'s mut dyn GenericThumbnail) -> &'s mut dyn GenericThumbnail {
+        image.crop(self.config)
     }
 
     /// This function returns the `index` as u32 of arguments list.
@@ -306,8 +306,8 @@ impl CommandTrait for CmdExif {
     ///
     /// * `&self` - the `CmdExif`-struct
     /// * `image` - The `GenericThumbnail` in which the `metadata` should be copied
-    fn execute(&self, image: &mut dyn GenericThumbnail) {
-        GenericThumbnail::exif(image, self.metadata.clone());
+    fn execute<'s>(&self, image: &'s mut dyn GenericThumbnail) -> &'s mut dyn GenericThumbnail {
+        image.exif(self.metadata.clone())
     }
 
     /// This function returns the `index` as u32 of arguments list.
@@ -358,8 +358,8 @@ impl CommandTrait for CmdFlip {
     ///
     /// * `&self` - the `CmdFlip`-struct
     /// * `image` - The `GenericThumbnail` to be flipped
-    fn execute(&self, image: &mut dyn GenericThumbnail) {
-        GenericThumbnail::flip(image, self.orientation);
+    fn execute<'s>(&self, image: &'s mut dyn GenericThumbnail) -> &'s mut dyn GenericThumbnail {
+        image.flip(self.orientation)
     }
 
     /// This function returns the `index` as u32 of arguments list.
@@ -410,8 +410,8 @@ impl CommandTrait for CmdHuerotate {
     ///
     /// * `&self` - the `CmdHuerotate`-struct
     /// * `image` - The `GenericThumbnail` to be rotated
-    fn execute(&self, image: &mut dyn GenericThumbnail) {
-        GenericThumbnail::huerotate(image, self.degree);
+    fn execute<'s>(&self, image: &'s mut dyn GenericThumbnail) -> &'s mut dyn GenericThumbnail {
+        image.huerotate(self.degree)
     }
 
     /// This function returns the `index` as u32 of arguments list.
@@ -460,8 +460,8 @@ impl CommandTrait for CmdInvert {
     ///
     /// * `&self` - the `CmdInvert`-struct
     /// * `image` - The `GenericThumbnail` to be inverted
-    fn execute(&self, image: &mut dyn GenericThumbnail) {
-        GenericThumbnail::invert(image);
+    fn execute<'s>(&self, image: &'s mut dyn GenericThumbnail) -> &'s mut dyn GenericThumbnail {
+        image.invert()
     }
 
     /// This function returns the `index` as u32 of arguments list.
@@ -512,8 +512,8 @@ impl CommandTrait for CmdResize {
     ///
     /// * `&self` - the `CmdResize`-struct
     /// * `image` - The `GenericThumbnail` to be resized
-    fn execute(&self, image: &mut dyn GenericThumbnail) {
-        GenericThumbnail::resize(image, self.size);
+    fn execute<'s>(&self, image: &'s mut dyn GenericThumbnail) -> &'s mut dyn GenericThumbnail {
+        image.resize(self.size)
     }
 
     /// This function returns the `index` as u32 of arguments list.
@@ -566,8 +566,8 @@ impl CommandTrait for CmdResizeFilter {
     ///
     /// * `&self` - the `CmdResizeFilter`-struct
     /// * `image` - The `GenericThumbnail` to be resized with a given filter
-    fn execute(&self, image: &mut dyn GenericThumbnail) {
-        GenericThumbnail::resize_filter(image, self.size, self.filter);
+    fn execute<'s>(&self, image: &'s mut dyn GenericThumbnail) -> &'s mut dyn GenericThumbnail {
+        image.resize_filter(self.size, self.filter)
     }
 
     /// This function returns the `index` as u32 of arguments list.
@@ -620,8 +620,8 @@ impl CommandTrait for CmdText {
     ///
     /// * `&self` - the `CmdText`-struct
     /// * `image` - The `GenericThumbnail` in which the `text` should be inserted
-    fn execute(&self, image: &mut dyn GenericThumbnail) {
-        GenericThumbnail::text(image, self.text.clone(), self.position);
+    fn execute<'s>(&self, image: &'s mut dyn GenericThumbnail) -> &'s mut dyn GenericThumbnail {
+        image.text(self.text.clone(), self.position)
     }
 
     /// This function returns the `index` as u32 of arguments list.
@@ -674,8 +674,8 @@ impl CommandTrait for CmdUnsharpen {
     ///
     /// * `&self` - the `CmdUnsharpen`-struct
     /// * `image` - The `GenericThumbnail` to be unsharpened
-    fn execute(&self, image: &mut dyn GenericThumbnail) {
-        GenericThumbnail::unsharpen(image, self.sigma, self.threshold);
+    fn execute<'s>(&self, image: &'s mut dyn GenericThumbnail) -> &'s mut dyn GenericThumbnail {
+        image.unsharpen(self.sigma, self.threshold)
     }
 
     /// This function returns the `index` as u32 of arguments list.
