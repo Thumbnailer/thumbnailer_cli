@@ -546,15 +546,12 @@ fn create_cmd_combine(matches: ArgMatches<'static>, arg: &str) -> CmdCombine {
         _ => BoxPosition::TopLeft(x_offset, y_offset),
     };
 
-    let path_buf = Path::new(image).to_path_buf();
-    let thumbnail = Thumbnail::load(path_buf);
+    let mut thumbnail = Thumbnail::load(Path::new(image).to_path_buf())
+        .unwrap_or_else(|_| panic!("‼→ ERROR in {}: failed to load the photo with the supplied path ←‼", arg));
 
-    let static_thumbnail = match thumbnail {
-        Ok(mut t) => t.clone_static_copy(),
-        Err(_e) => panic!("ERROR: the supplied image in --{} was not found", arg)
-    };
+    let static_thumbnail = thumbnail.clone_static_copy().expect(&format!("‼→ ERROR in {}: failed to convert Thumbnail to StaticThumbnail ←‼", arg));
 
-    CmdCombine { index, image: static_thumbnail.expect("ERROR: Could not convert Thumbnail to StaticThumbnail"), position }
+    CmdCombine { index, image: static_thumbnail, position }
 }
 
 

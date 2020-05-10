@@ -4,26 +4,53 @@ use std::cmp::Ordering;
 use thumbnailer::{GenericThumbnail, StaticThumbnail};
 use thumbnailer::{BoxPosition, Crop, Exif, Orientation, ResampleFilter, Resize};
 
-/// Commands
+/// A trait for executing operations provided by `thumbnailer`, depending on the supplied commands
 pub trait CommandTrait {
+    /// Executes the operations of implementors of `CommandTrait`, which are provided by `thumbnailer`.
+    ///
+    /// Returns the modified `GenericThumbnail`
+    ///
+    /// # Arguments
+    ///
+    /// * `&self`: The command containing the `index` as u32 of arguments list (to use the same sequence in ascending order as specified by the user) and all necessary parameters
+    /// * `image`: The `GenericThumbnail` to be modified
     fn execute<'s>(&self, image: &'s mut dyn GenericThumbnail) -> &'s mut dyn GenericThumbnail;
+
+    /// This function returns the `index` as u32 of arguments list of implementors of `CommandTrait`.
+    ///
+    /// # Arguments
+    ///
+    /// * `&self`: The command containing the `index` as u32 of arguments list (to use the same sequence in ascending order as specified by the user) and all necessary parameters
     fn get_index(&self) -> u32;
+
+    /// This function returns a formatted String, depending on the `index` and the values given by command-struct of implementors of `CommandTrait`.
+    ///
+    /// # Arguments
+    ///
+    /// * `&self`: The command containing the `index` as u32 of arguments list (to use the same sequence in ascending order as specified by the user) and all necessary parameters
     fn print(&self) -> String;
 }
 
 impl Ord for dyn CommandTrait {
+    /// This method returns an [Ordering] between self and other.
+    /// By convention, self.cmp(&other) returns the ordering matching the expression self <operator> other if true.
+    /// (c) https://doc.rust-lang.org/std/cmp/index.html
     fn cmp(&self, other: &Self) -> Ordering {
         self.get_index().cmp(&other.get_index())
     }
 }
 
 impl PartialOrd for dyn CommandTrait {
+    /// This method returns an ordering between self and other values if one exists.
+    /// (c) https://doc.rust-lang.org/std/cmp/index.html
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
 impl PartialEq for dyn CommandTrait {
+    /// This method tests for self and other values to be equal, and is used by ==.
+    /// (c) https://doc.rust-lang.org/std/cmp/index.html
     fn eq(&self, other: &Self) -> bool {
         self.get_index() == other.get_index()
     }
@@ -41,6 +68,8 @@ pub struct CmdBlur {
 
 impl CommandTrait for CmdBlur {
     /// This function calls the actual blur command, depending on the `sigma` given by `CmdBlur`-struct.
+    ///
+    /// Returns the blurred `GenericThumbnail`
     ///
     /// # Arguments
     ///
@@ -94,6 +123,8 @@ pub struct CmdBrighten {
 impl CommandTrait for CmdBrighten {
     /// This function calls the actual brighten command, depending on the `value` given by `CmdBrighten`-struct.
     ///
+    /// Returns the brightened `GenericThumbnail`
+    ///
     /// # Arguments
     ///
     /// * `&self` - the `CmdBrighten`-struct
@@ -144,6 +175,8 @@ pub struct CmdContrast {
 
 impl CommandTrait for CmdContrast {
     /// This function calls the actual contrast command, depending on the `value` given by `CmdContrast`-struct.
+    ///
+    /// Returns the `GenericThumbnail` whose contrast has been changed
     ///
     /// # Arguments
     ///
@@ -199,6 +232,8 @@ pub struct CmdCombine {
 impl CommandTrait for CmdCombine {
     /// This function calls the actual combine command, depending on the values given by the members of `CmdCombine`-struct.
     ///
+    /// Returns the `GenericThumbnail` in which the photo has been inserted
+    ///
     /// # Arguments
     ///
     /// * `&self` - the `CmdCombine`-struct
@@ -251,6 +286,8 @@ pub struct CmdCrop {
 impl CommandTrait for CmdCrop {
     /// This function calls the actual crop command, depending on the values given by the members of `CmdCrop`-struct.
     ///
+    /// Returns the cropped `GenericThumbnail`
+    ///
     /// # Arguments
     ///
     /// * `&self` - the `CmdCrop`-struct
@@ -301,6 +338,8 @@ pub struct CmdExif {
 
 impl CommandTrait for CmdExif {
     /// This function calls the actual exif command, depending on the values given by the members of `CmdExif`-struct.
+    ///
+    /// Returns the `GenericThumbnail` in which the `metadata` has been copied
     ///
     /// # Arguments
     ///
@@ -354,6 +393,8 @@ pub struct CmdFlip {
 impl CommandTrait for CmdFlip {
     /// This function calls the actual flip command, depending on the value given by the `CmdFlip`-struct.
     ///
+    /// Returns the flipped `GenericThumbnail`
+    ///
     /// # Arguments
     ///
     /// * `&self` - the `CmdFlip`-struct
@@ -406,6 +447,8 @@ pub struct CmdHuerotate {
 impl CommandTrait for CmdHuerotate {
     /// This function calls the actual huerotate command, depending on the `degree` given by the `CmdHuerotate`-struct.
     ///
+    /// Returns the rotated `GenericThumbnail`
+    ///
     /// # Arguments
     ///
     /// * `&self` - the `CmdHuerotate`-struct
@@ -455,6 +498,8 @@ pub struct CmdInvert {
 
 impl CommandTrait for CmdInvert {
     /// This function calls the actual invert command.
+    ///
+    /// Returns the inverted `GenericThumbnail`
     ///
     /// # Arguments
     ///
@@ -507,6 +552,8 @@ pub struct CmdResize {
 
 impl CommandTrait for CmdResize {
     /// This function calls the actual resize command, depending on the values given by the members of `CmdResize`-struct.
+    ///
+    /// Returns the resized `GenericThumbnail`
     ///
     /// # Arguments
     ///
@@ -562,6 +609,8 @@ pub struct CmdResizeFilter {
 impl CommandTrait for CmdResizeFilter {
     /// This function calls the actual resize_filter command, depending on the values given by the members of `CmdResizeFilter`-struct.
     ///
+    /// Returns the, with the given filter, resized `GenericThumbnail`
+    ///
     /// # Arguments
     ///
     /// * `&self` - the `CmdResizeFilter`-struct
@@ -616,6 +665,8 @@ pub struct CmdText {
 impl CommandTrait for CmdText {
     /// This function calls the actual text command, depending on the values given by the members of `CmdText`-struct.
     ///
+    /// Returns the `GenericThumbnail` in which the `text` has been inserted
+    ///
     /// # Arguments
     ///
     /// * `&self` - the `CmdText`-struct
@@ -669,6 +720,8 @@ pub struct CmdUnsharpen {
 
 impl CommandTrait for CmdUnsharpen {
     /// This function calls the actual unsharpen command, depending on the values given by the members of `CmdUnsharpen`-struct.
+    ///
+    /// Returns the unsharpened `GenericThumbnail`
     ///
     /// # Arguments
     ///
