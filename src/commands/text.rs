@@ -43,10 +43,10 @@ impl Command for CmdText {
     ///
     /// # Examples
     /// ```
-    /// let index = 12;
-    /// let text = CmdText { index, text: String::from("(c) Thumbnailer"), position: BoxPosition::TopLeft(37, 28)  };
+    /// let index = 13;
+    /// let text = CmdText::new(index, String::from("(c) Thumbnailer"), BoxPosition::TopLeft(37, 28));
     /// println!("index = {}", text.get_index());
-    /// assert_eq!(text.get_index(), 12, "testing text.get_index() with index = {}", index);
+    /// assert_eq!(text.get_index(), 13, "testing text.get_index() with index = {}", index);
     /// ```
     fn get_index(&self) -> u32 {
         self.index
@@ -60,7 +60,7 @@ impl Command for CmdText {
     ///
     /// # Examples
     /// ```
-    /// let text = CmdText { index: 12, text: String::from("(c) Thumbnailer"), position: BoxPosition::TopLeft(37, 28)  };
+    /// let text = CmdText::new(13, String::from("(c) Thumbnailer"), BoxPosition::TopLeft(37, 28));
     /// println!("{}", text.print());
     /// ```
     fn print(&self) -> String {

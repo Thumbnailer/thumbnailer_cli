@@ -43,10 +43,10 @@ impl Command for CmdUnsharpen {
     ///
     /// # Examples
     /// ```
-    /// let index = 13;
-    /// let unsharpen = CmdUnsharpen { index, sigma: 0.3, threshold: 2 };
+    /// let index = 14;
+    /// let unsharpen = CmdUnsharpen::new(index, 0.3, 2);
     /// println!("index = {}", unsharpen.get_index());
-    /// assert_eq!(unsharpen.get_index(), 13, "testing unsharpen.get_index() with index = {}", index);
+    /// assert_eq!(unsharpen.get_index(), 14, "testing unsharpen.get_index() with index = {}", index);
     /// ```
     fn get_index(&self) -> u32 {
         self.index
@@ -60,7 +60,7 @@ impl Command for CmdUnsharpen {
     ///
     /// # Examples
     /// ```
-    /// let unsharpen = CmdUnsharpen { index: 13, sigma: 0.3, threshold: 2 };
+    /// let unsharpen = CmdUnsharpen::new(14, 0.3, 2);
     /// println!("{}", unsharpen.print());
     /// ```
     fn print(&self) -> String {

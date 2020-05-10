@@ -41,7 +41,7 @@ impl Command for CmdResize {
     /// # Examples
     /// ```
     /// let index = 10;
-    /// let resize = CmdResize { index, size: Resize::BoundingBox(400, 300) };
+    /// let resize = CmdResize::new(index, Resize::BoundingBox(400, 300));
     /// println!("index = {}", resize.get_index());
     /// assert_eq!(resize.get_index(), 10, "testing resize.get_index() with index = {}", index);
     /// ```
@@ -57,7 +57,7 @@ impl Command for CmdResize {
     ///
     /// # Examples
     /// ```
-    /// let resize = CmdResize { index: 10, size: Resize::BoundingBox(400, 300) };
+    /// let resize = CmdResize::new(10, Resize::BoundingBox(400, 300));
     /// println!("{}", resize.print());
     /// ```
     fn print(&self) -> String {

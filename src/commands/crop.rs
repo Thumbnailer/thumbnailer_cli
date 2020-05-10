@@ -40,7 +40,7 @@ impl Command for CmdCrop {
     /// # Examples
     /// ```
     /// let index = 5;
-    /// let crop = CmdCrop { index, config: Crop::Ratio(4, 3) };
+    /// let crop = CmdCrop::new(index, Crop::Ratio(4, 3));
     /// println!("index = {}", crop.get_index());
     /// assert_eq!(crop.get_index(), 5, "testing crop.get_index() with index = {}", index);
     /// ```
@@ -56,7 +56,7 @@ impl Command for CmdCrop {
     ///
     /// # Examples
     /// ```
-    /// let crop = CmdCrop { index: 5, config: Crop::Ratio(4, 3) };
+    /// let crop = CmdCrop::new(5, Crop::Ratio(4, 3));
     /// println!("{}", crop.print());
     /// ```
     fn print(&self) -> String {

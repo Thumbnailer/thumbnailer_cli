@@ -44,9 +44,9 @@ impl Command for CmdResizeFilter {
     /// # Examples
     /// ```
     /// let index = 11;
-    /// let resize_filter = CmdResizeFilter { index, size: Resize::BoundingBox(400, 300), filter: ResampleFilter::Nearest };
+    /// let resize_filter = CmdResizeFilter::new(index, Resize::BoundingBox(400, 300), ResampleFilter::Nearest);
     /// println!("index = {}", resize_filter.get_index());
-    /// assert_eq!(resize_filter.get_index(), 10, "testing resize_filter.get_index() with index = {}", index);
+    /// assert_eq!(resize_filter.get_index(), 11, "testing resize_filter.get_index() with index = {}", index);
     /// ```
     fn get_index(&self) -> u32 {
         self.index
@@ -60,7 +60,7 @@ impl Command for CmdResizeFilter {
     ///
     /// # Examples
     /// ```
-    /// let resize_filter = CmdResizeFilter { index: 11, size: Resize::BoundingBox(400, 300), filter: ResampleFilter::Nearest };
+    /// let resize_filter = CmdResizeFilter::new(11, Resize::BoundingBox(400, 300), ResampleFilter::Nearest);
     /// println!("{}", resize_filter.print());
     /// ```
     fn print(&self) -> String {

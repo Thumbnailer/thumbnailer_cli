@@ -41,7 +41,7 @@ impl Command for CmdHuerotate {
     /// # Examples
     /// ```
     /// let index = 8;
-    /// let huerotate = CmdHuerotate { index, degree: 90 };
+    /// let huerotate = CmdHuerotate::new(index, 90);
     /// println!("index = {}", huerotate.get_index());
     /// assert_eq!(huerotate.get_index(), 8, "testing huerotate.get_index() with index = {}", index);
     /// ```
@@ -57,7 +57,7 @@ impl Command for CmdHuerotate {
     ///
     /// # Examples
     /// ```
-    /// let huerotate = CmdBlur { index: 8,  degree: 90 };
+    /// let huerotate = CmdBlur::new(8, 90);
     /// println!("{}", huerotate.print());
     /// ```
     fn print(&self) -> String {

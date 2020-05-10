@@ -38,7 +38,7 @@ impl Command for CmdInvert {
     /// # Examples
     /// ```
     /// let index = 9;
-    /// let invert = CmdInvert { index };
+    /// let invert = CmdInvert::new(index);
     /// println!("index = {}", invert.get_index());
     /// assert_eq!(invert.get_index(), 9, "testing invert.get_index() with index = {}", index);
     /// ```
@@ -54,7 +54,7 @@ impl Command for CmdInvert {
     ///
     /// # Examples
     /// ```
-    /// let invert = CmdBlur { index: 9 };
+    /// let invert = CmdBlur::new(9);
     /// println!("{}", invert.print());
     /// ```
     fn print(&self) -> String {
