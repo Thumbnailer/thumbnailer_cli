@@ -316,7 +316,7 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         let sigma = String::from(matches.value_of(ARG_BLUR).unwrap()).parse::<f32>()
             .unwrap_or_else(|_| panic!("‼→ ERROR in {}: sigma expects f32, got {} ←‼", ARG_BLUR, matches.value_of(ARG_BLUR).unwrap()));
 
-        cmd_list.commands.push(Box::new(CmdBlur { index, sigma }));
+        cmd_list.commands.push(Box::new(CmdBlur::new(index, sigma)));
     }
 
     if matches.is_present(ARG_BRIGHTEN) {
@@ -324,7 +324,7 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         let value = String::from(matches.value_of(ARG_BRIGHTEN).unwrap()).parse::<i32>()
             .unwrap_or_else(|_| panic!("‼→ ERROR in {}: value expects i32, got {} ←‼", ARG_BRIGHTEN, matches.value_of(ARG_BRIGHTEN).unwrap()));
 
-        cmd_list.commands.push(Box::new(CmdBrighten { index, value }));
+        cmd_list.commands.push(Box::new(CmdBrighten::new(index, value)));
     }
 
     if matches.is_present(ARG_CONTRAST) {
@@ -332,7 +332,7 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         let value = String::from(matches.value_of(ARG_CONTRAST).unwrap()).parse::<f32>()
             .unwrap_or_else(|_| panic!("‼→ ERROR in {}: value expects f32, got {} ←‼", ARG_CONTRAST, matches.value_of(ARG_CONTRAST).unwrap()));
 
-        cmd_list.commands.push(Box::new(CmdContrast { index, value }));
+        cmd_list.commands.push(Box::new(CmdContrast::new(index, value)));
     }
 
     if matches.is_present(ARG_COMBINE_TL) {
@@ -357,7 +357,7 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         let width = values[2].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: width expects u32, got {} ←‼", ARG_CROP_BOX, values[2]));
         let height = values[3].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: height expects u32, got {} ←‼", ARG_CROP_BOX, values[3]));
 
-        let crop = CmdCrop { index, config: Crop::Box(x, y, width, height) };
+        let crop = CmdCrop::new(index, Crop::Box(x, y, width, height));
         cmd_list.commands.push(Box::new(crop));
     }
 
@@ -368,28 +368,28 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         let x_ratio = values[0].parse::<f32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: x_ratio expects f32, got {} ←‼", ARG_CROP_RATIO, values[0]));
         let y_ratio = values[1].parse::<f32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: y_ratio expects f32, got {} ←‼", ARG_CROP_RATIO, values[1]));
 
-        let crop = CmdCrop { index, config: Crop::Ratio(x_ratio, y_ratio) };
+        let crop = CmdCrop::new(index, Crop::Ratio(x_ratio, y_ratio));
         cmd_list.commands.push(Box::new(crop));
     }
 
     if matches.is_present(ARG_EXIF) {
         let index = matches.index_of(ARG_EXIF).unwrap() as u32;
 
-        let exif = CmdExif { index, metadata: Exif::Keep };
+        let exif = CmdExif::new(index, Exif::Keep);
         cmd_list.commands.push(Box::new(exif));
     }
 
     if matches.is_present(ARG_FLIP_HORIZONTAL) {
         let index = matches.index_of(ARG_FLIP_HORIZONTAL).unwrap() as u32;
 
-        let flip = CmdFlip { index, orientation: Orientation::Horizontal };
+        let flip = CmdFlip::new(index, Orientation::Horizontal);
         cmd_list.commands.push(Box::new(flip));
     }
 
     if matches.is_present(ARG_FLIP_VERTICAL) {
         let index = matches.index_of(ARG_FLIP_VERTICAL).unwrap() as u32;
 
-        let flip = CmdFlip { index, orientation: Orientation::Vertical };
+        let flip = CmdFlip::new(index, Orientation::Vertical);
         cmd_list.commands.push(Box::new(flip));
     }
 
@@ -398,14 +398,14 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         let degree = String::from(matches.value_of(ARG_HUEROTATE).unwrap()).parse::<i32>()
             .unwrap_or_else(|_| panic!("‼→ ERROR in {}: degree expects i32, got {} ←‼", ARG_HUEROTATE, matches.value_of(ARG_HUEROTATE).unwrap()));
 
-        let huerotate = CmdHuerotate { index, degree };
+        let huerotate = CmdHuerotate::new(index, degree);
         cmd_list.commands.push(Box::new(huerotate));
     }
 
     if matches.is_present(ARG_INVERT) {
         let index = matches.index_of(ARG_INVERT).unwrap() as u32;
 
-        let invert = CmdInvert { index };
+        let invert = CmdInvert::new(index);
         cmd_list.commands.push(Box::new(invert));
     }
 
@@ -427,7 +427,7 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         } else {
             size = Resize::ExactBox(width, height);
         }
-        cmd_list.commands.push(Box::new(CmdResize { index, size }));
+        cmd_list.commands.push(Box::new(CmdResize::new(index, size)));
     }
 
     if matches.is_present(ARG_RESIZE_N) {
@@ -450,21 +450,21 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         let index = matches.index_of(ARG_ROTATE90).unwrap() as u32;
         let degree = 90 * matches.occurrences_of(ARG_ROTATE90) as i32;
 
-        let huerotate = CmdHuerotate { index, degree };
+        let huerotate = CmdHuerotate::new(index, degree);
         cmd_list.commands.push(Box::new(huerotate));
     }
 
     if matches.is_present(ARG_ROTATE180) {
         let index = matches.index_of(ARG_ROTATE180).unwrap() as u32;
 
-        let huerotate = CmdHuerotate { index, degree: 180 };
+        let huerotate = CmdHuerotate::new(index, 180);
         cmd_list.commands.push(Box::new(huerotate));
     }
 
     if matches.is_present(ARG_ROTATE270) {
         let index = matches.index_of(ARG_ROTATE270).unwrap() as u32;
 
-        let huerotate = CmdHuerotate { index, degree: 270 };
+        let huerotate = CmdHuerotate::new(index, 270);
         cmd_list.commands.push(Box::new(huerotate));
     }
 
@@ -488,7 +488,7 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         let sigma = values[0].parse::<f32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: sigma expects f32, got {} ←‼", ARG_UNSHARPEN, values[0]));
         let threshold = values[1].parse::<i32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: threshold expects i32, got {} ←‼", ARG_UNSHARPEN, values[1]));
 
-        let unsharpen = CmdUnsharpen { index, sigma, threshold };
+        let unsharpen = CmdUnsharpen::new(index, sigma, threshold);
         cmd_list.commands.push(Box::new(unsharpen));
     }
 
@@ -549,9 +549,9 @@ fn create_cmd_combine(matches: ArgMatches<'static>, arg: &str) -> CmdCombine {
     let mut thumbnail = Thumbnail::load(Path::new(image).to_path_buf())
         .unwrap_or_else(|_| panic!("‼→ ERROR in {}: failed to load the photo with the supplied path ←‼", arg));
 
-    let static_thumbnail = thumbnail.clone_static_copy().expect(&format!("‼→ ERROR in {}: failed to convert Thumbnail to StaticThumbnail ←‼", arg));
+    let static_thumbnail = thumbnail.clone_static_copy().unwrap_or_else(|| panic!("‼→ ERROR in {}: failed to convert Thumbnail to StaticThumbnail ←‼", arg));
 
-    CmdCombine { index, image: static_thumbnail, position }
+    CmdCombine::new(index, static_thumbnail, position)
 }
 
 
@@ -618,7 +618,7 @@ fn create_cmd_resize_filter(matches: ArgMatches<'static>, arg: &str) -> CmdResiz
         _ => ResampleFilter::Nearest,
     };
 
-    CmdResizeFilter { index, size, filter }
+    CmdResizeFilter::new(index, size, filter)
 }
 
 /// This function is parsing the given values for the argument of the text-command
@@ -671,5 +671,5 @@ fn create_cmd_text(matches: ArgMatches<'static>, arg: &str) -> CmdText {
         _ => BoxPosition::TopLeft(x_offset, y_offset),
     };
 
-    CmdText { index, text, position }
+    CmdText::new(index, text, position)
 }

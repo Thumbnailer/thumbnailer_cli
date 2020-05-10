@@ -624,7 +624,7 @@ dependencies = [
 [[package]]
 name = "thumbnailer"
 version = "0.1.0"
-source = "git+https://github.com/Thumbnailer/thumbnailer.git#1f476df9dc220dce8caaf173847b3af519baf2c1"
+source = "git+https://github.com/Thumbnailer/thumbnailer.git#6ac65c646725b7b5781fe3f2d897d1422c1b9479"
 dependencies = [
  "globwalk 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "image 0.23.4 (registry+https://github.com/rust-lang/crates.io-index)",

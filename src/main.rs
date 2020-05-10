@@ -8,24 +8,23 @@ use thumbnailer::{GenericThumbnail, Target, Thumbnail};
 use thumbnailer::target::TargetFormat;
 
 use crate::cli::{get_matches, NAME_FILE_IN, NAME_FILE_OUT, read_commands};
-use crate::commands::CommandTrait;
+use crate::commands::Command;
 
 pub mod cli;
 pub mod commands;
 
 /// Representation of the command-list as a struct
 pub struct Commands {
-    /// Contains the implementors of `CommandTrait` to apply a list of operations, which are provided by `thumbnailer`, on the supplied image(s)
-    commands: Vec<Box<dyn CommandTrait>>,
+    /// Contains the implementors of `Command` to apply a list of operations, which are provided by `thumbnailer`, on the supplied image(s)
+    commands: Vec<Box<dyn Command>>,
 }
-
-//  .\target\debug\thumbnailer_cli.exe -h
-//  .\target\debug\thumbnailer_cli.exe C:\Users\p372094\IdeaProjects\thumbnailer_cli\img\test.JPG C:\Users\p372094\IdeaProjects\thumbnailer_cli\img\result.png --blur 6 --brighten 15
 
 /// Main logic of the thumbnailer command line interface (`thumbnailer_cli`)
 ///
 /// Run `thumbnailer_cli.exe -h` to view the help and learn about its functionality.
 /// Run `thumbnailer_cli.exe -V` to print the version information.
+//  .\target\debug\thumbnailer_cli.exe -h
+//  .\target\debug\thumbnailer_cli.exe C:\Users\p372094\IdeaProjects\thumbnailer_cli\img\test.JPG C:\Users\p372094\IdeaProjects\thumbnailer_cli\img\result.png --blur 6 --brighten 15
 fn main() {
     let matches = get_matches();
 
@@ -51,6 +50,6 @@ fn main() {
         Some("gif") => TargetFormat::Gif,
         _ => TargetFormat::Jpeg,
     };
-    let mut target = Target::new(format, Path::new(&file_out).to_path_buf());
-    image.apply_store(&mut target);
+    let target = Target::new(format, Path::new(&file_out).to_path_buf());
+    image.apply_store(&target);
 }
