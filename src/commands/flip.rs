@@ -61,6 +61,9 @@ impl Command for CmdFlip {
     /// println!("{}", flip.print());
     /// ```
     fn print(&self) -> String {
-        format!("► {:02}. flip:\t\torientation = {:?}", self.index, self.orientation)
+        format!(
+            "► {:02}. flip:\t\torientation = {:?}",
+            self.index, self.orientation
+        )
     }
 }

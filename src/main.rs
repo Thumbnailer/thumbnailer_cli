@@ -33,8 +33,12 @@ fn main() {
     let cmd_list = read_commands(matches);
 
     println!("Input file: {}", file_in);
-    let mut image = Thumbnail::load(Path::new(&file_in).to_path_buf())
-        .unwrap_or_else(|_| panic!("‼→ ERROR in {}: failed to load the image with the supplied path ←‼", NAME_FILE_IN));
+    let mut image = Thumbnail::load(Path::new(&file_in).to_path_buf()).unwrap_or_else(|_| {
+        panic!(
+            "‼→ ERROR in {}: failed to load the image with the supplied path ←‼",
+            NAME_FILE_IN
+        )
+    });
 
     for i in 0..cmd_list.commands.len() {
         println!("{}", cmd_list.commands.get(i).unwrap().print());

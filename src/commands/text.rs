@@ -18,7 +18,11 @@ impl CmdText {
     /// * `text`: String to print into the supplied image(s)
     /// * `value`: `BoxPosition` enum as option
     pub fn new(index: u32, text: String, position: BoxPosition) -> Self {
-        CmdText { index, text, position }
+        CmdText {
+            index,
+            text,
+            position,
+        }
     }
 }
 
@@ -64,6 +68,9 @@ impl Command for CmdText {
     /// println!("{}", text.print());
     /// ```
     fn print(&self) -> String {
-        format!("► {:02}. text:\t\t{:?}\ttext: {}", self.index, self.position, self.text)
+        format!(
+            "► {:02}. text:\t\t{:?}\ttext: {}",
+            self.index, self.position, self.text
+        )
     }
 }
