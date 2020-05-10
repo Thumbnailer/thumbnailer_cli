@@ -41,7 +41,7 @@ impl Command for CmdFlip {
     /// # Examples
     /// ```
     /// let index = 7;
-    /// let flip = CmdFlip { index, orientation: Orientation::Horizontal};
+    /// let flip = CmdFlip::new(index, Orientation::Horizontal);
     /// println!("index = {}", flip.get_index());
     /// assert_eq!(flip.get_index(), 7, "testing flip.get_index() with index = {}", index);
     /// ```
@@ -57,7 +57,7 @@ impl Command for CmdFlip {
     ///
     /// # Examples
     /// ```
-    /// let flip = CmdFlip { index: 7, orientation: Orientation::Horizontal};
+    /// let flip = CmdFlip::new(7, Orientation::Horizontal);
     /// println!("{}", flip.print());
     /// ```
     fn print(&self) -> String {

@@ -14,6 +14,7 @@ pub use huerotate::CmdHuerotate;
 pub use invert::CmdInvert;
 pub use resize::CmdResize;
 pub use resize_filter::CmdResizeFilter;
+pub use rotate::CmdRotate;
 pub use text::CmdText;
 pub use unsharpen::CmdUnsharpen;
 
@@ -29,6 +30,7 @@ pub mod huerotate;
 pub mod invert;
 pub mod resize;
 pub mod resize_filter;
+pub mod rotate;
 pub mod text;
 pub mod unsharpen;
 

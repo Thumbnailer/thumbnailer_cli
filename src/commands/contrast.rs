@@ -41,7 +41,7 @@ impl Command for CmdContrast {
     /// # Examples
     /// ```
     /// let index = 3;
-    /// let contrast = CmdContrast { index, value: 0.8 };
+    /// let contrast = CmdContrast::new(index, 0.8);
     /// println!("index = {}", contrast.get_index());
     /// assert_eq!(contrast.get_index(), 3, "testing contrast.get_index() with index = {}", index);
     /// ```
@@ -57,7 +57,7 @@ impl Command for CmdContrast {
     ///
     /// # Examples
     /// ```
-    /// let contrast = CmdContrast { index: 3, value: 0.8 };
+    /// let contrast = CmdContrast::new(3, 0.8);
     /// println!("{}", contrast.print());
     /// ```
     fn print(&self) -> String {

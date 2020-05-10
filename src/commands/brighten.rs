@@ -41,7 +41,7 @@ impl Command for CmdBrighten {
     /// # Examples
     /// ```
     /// let index = 2;
-    /// let brighten = CmdBrighten { index, value: 3 };
+    /// let brighten = CmdBrighten::new(index, 3);
     /// println!("index = {}", brighten.get_index());
     /// assert_eq!(brighten.get_index(), 2, "testing brighten.get_index() with index = {}", index);
     fn get_index(&self) -> u32 {
@@ -56,7 +56,7 @@ impl Command for CmdBrighten {
     ///
     /// # Examples
     /// ```
-    /// let brighten = CmdBrighten { index: 2, value: 3 };
+    /// let brighten = CmdBrighten::new(2, 3);
     /// println!("{}", brighten.print());
     /// ```
     fn print(&self) -> String {

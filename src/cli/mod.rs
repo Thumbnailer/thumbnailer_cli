@@ -4,7 +4,7 @@ use clap::{App, Arg, ArgMatches};
 pub use thumbnailer::{BoxPosition, Crop, Exif, Orientation, ResampleFilter, Resize};
 use thumbnailer::Thumbnail;
 
-use crate::commands::{CmdBlur, CmdBrighten, CmdCombine, CmdContrast, CmdCrop, CmdExif, CmdFlip, CmdHuerotate, CmdInvert, CmdResize, CmdResizeFilter, CmdText, CmdUnsharpen};
+use crate::commands::{CmdBlur, CmdBrighten, CmdCombine, CmdContrast, CmdCrop, CmdExif, CmdFlip, CmdHuerotate, CmdInvert, CmdResize, CmdResizeFilter, CmdRotate, CmdText, CmdUnsharpen};
 use crate::Commands;
 
 pub const NAME_FILE_IN: &str = "INPUT_PATH";
@@ -357,8 +357,7 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         let width = values[2].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: width expects u32, got {} ←‼", ARG_CROP_BOX, values[2]));
         let height = values[3].parse::<u32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: height expects u32, got {} ←‼", ARG_CROP_BOX, values[3]));
 
-        let crop = CmdCrop::new(index, Crop::Box(x, y, width, height));
-        cmd_list.commands.push(Box::new(crop));
+        cmd_list.commands.push(Box::new(CmdCrop::new(index, Crop::Box(x, y, width, height))));
     }
 
     if matches.is_present(ARG_CROP_RATIO) {
@@ -368,29 +367,25 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         let x_ratio = values[0].parse::<f32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: x_ratio expects f32, got {} ←‼", ARG_CROP_RATIO, values[0]));
         let y_ratio = values[1].parse::<f32>().unwrap_or_else(|_| panic!("‼→ ERROR in {}: y_ratio expects f32, got {} ←‼", ARG_CROP_RATIO, values[1]));
 
-        let crop = CmdCrop::new(index, Crop::Ratio(x_ratio, y_ratio));
-        cmd_list.commands.push(Box::new(crop));
+        cmd_list.commands.push(Box::new(CmdCrop::new(index, Crop::Ratio(x_ratio, y_ratio))));
     }
 
     if matches.is_present(ARG_EXIF) {
         let index = matches.index_of(ARG_EXIF).unwrap() as u32;
 
-        let exif = CmdExif::new(index, Exif::Keep);
-        cmd_list.commands.push(Box::new(exif));
+        cmd_list.commands.push(Box::new(CmdExif::new(index, Exif::Keep)));
     }
 
     if matches.is_present(ARG_FLIP_HORIZONTAL) {
         let index = matches.index_of(ARG_FLIP_HORIZONTAL).unwrap() as u32;
 
-        let flip = CmdFlip::new(index, Orientation::Horizontal);
-        cmd_list.commands.push(Box::new(flip));
+        cmd_list.commands.push(Box::new(CmdFlip::new(index, Orientation::Horizontal)));
     }
 
     if matches.is_present(ARG_FLIP_VERTICAL) {
         let index = matches.index_of(ARG_FLIP_VERTICAL).unwrap() as u32;
 
-        let flip = CmdFlip::new(index, Orientation::Vertical);
-        cmd_list.commands.push(Box::new(flip));
+        cmd_list.commands.push(Box::new(CmdFlip::new(index, Orientation::Vertical)));
     }
 
     if matches.is_present(ARG_HUEROTATE) {
@@ -398,15 +393,13 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         let degree = String::from(matches.value_of(ARG_HUEROTATE).unwrap()).parse::<i32>()
             .unwrap_or_else(|_| panic!("‼→ ERROR in {}: degree expects i32, got {} ←‼", ARG_HUEROTATE, matches.value_of(ARG_HUEROTATE).unwrap()));
 
-        let huerotate = CmdHuerotate::new(index, degree);
-        cmd_list.commands.push(Box::new(huerotate));
+        cmd_list.commands.push(Box::new(CmdHuerotate::new(index, degree)));
     }
 
     if matches.is_present(ARG_INVERT) {
         let index = matches.index_of(ARG_INVERT).unwrap() as u32;
 
-        let invert = CmdInvert::new(index);
-        cmd_list.commands.push(Box::new(invert));
+        cmd_list.commands.push(Box::new(CmdInvert::new(index)));
     }
 
     if matches.is_present(ARG_RESIZE) {
@@ -448,24 +441,26 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
 
     if matches.is_present(ARG_ROTATE90) {
         let index = matches.index_of(ARG_ROTATE90).unwrap() as u32;
-        let degree = 90 * matches.occurrences_of(ARG_ROTATE90) as i32;
+        let degree = 90 * (matches.occurrences_of(ARG_ROTATE90) as i32 % 360);
 
-        let huerotate = CmdHuerotate::new(index, degree);
-        cmd_list.commands.push(Box::new(huerotate));
+        match degree {
+            90 => { cmd_list.commands.push(Box::new(CmdRotate::new(index, Rotation::Rotate90))); },
+            180 => { cmd_list.commands.push(Box::new(CmdRotate::new(index, Rotation::Rotate180))); },
+            270 => { cmd_list.commands.push(Box::new(CmdRotate::new(index, Rotation::Rotate270))); },
+            _ => {},
+        }
     }
 
     if matches.is_present(ARG_ROTATE180) {
         let index = matches.index_of(ARG_ROTATE180).unwrap() as u32;
 
-        let huerotate = CmdHuerotate::new(index, 180);
-        cmd_list.commands.push(Box::new(huerotate));
+        cmd_list.commands.push(Box::new(CmdRotate::new(index, Rotation::Rotate180)));
     }
 
     if matches.is_present(ARG_ROTATE270) {
         let index = matches.index_of(ARG_ROTATE270).unwrap() as u32;
 
-        let huerotate = CmdHuerotate::new(index, 270);
-        cmd_list.commands.push(Box::new(huerotate));
+        cmd_list.commands.push(Box::new(CmdRotate::new(index, Rotation::Rotate270)));
     }
 
     if matches.is_present(ARG_TEXT_TL) {

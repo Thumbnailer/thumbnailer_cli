@@ -41,7 +41,7 @@ impl Command for CmdBlur {
     /// # Examples
     /// ```
     /// let index = 1;
-    /// let blur = CmdBlur { index, sigma: 0.5 };
+    /// let blur = CmdBlur::new(index, 0.5);
     /// println!("index = {}", blur.get_index());
     /// assert_eq!(blur.get_index(), 1, "testing blur.get_index() with index = {}", index);
     /// ```
@@ -57,7 +57,7 @@ impl Command for CmdBlur {
     ///
     /// # Examples
     /// ```
-    /// let blur = CmdBlur { index: 1, sigma: 0.5 };
+    /// let blur = CmdBlur::new(1, 0.5);
     /// println!("{}", blur.print());
     /// ```
     fn print(&self) -> String {

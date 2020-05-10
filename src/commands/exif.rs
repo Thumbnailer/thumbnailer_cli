@@ -41,7 +41,7 @@ impl Command for CmdExif {
     /// # Examples
     /// ```
     /// let index = 6;
-    /// let exif = CmdExif { index, metadata: Exif::Keep };
+    /// let exif = CmdExif::new(index, Exif::Keep);
     /// println!("index = {}", exif.get_index());
     /// assert_eq!(exif.get_index(), 1, "testing exif.get_index() with index = {}", index);
     /// ```
@@ -57,7 +57,7 @@ impl Command for CmdExif {
     ///
     /// # Examples
     /// ```
-    /// let exif = CmdExif { index: 6, metadata: Exif::Keep };
+    /// let exif = CmdExif::new(6, Exif::Keep);
     /// println!("{}", exif.print());
     /// ```
     fn print(&self) -> String {
