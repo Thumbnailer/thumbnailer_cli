@@ -2,7 +2,7 @@ use std::path::Path;
 
 use clap::{App, Arg, ArgMatches};
 pub use thumbnailer::{BoxPosition, Crop, Exif, Orientation, ResampleFilter, Resize};
-use thumbnailer::{SingleThumbnail, Thumbnail};
+use thumbnailer::Thumbnail;
 
 use crate::commands::{CmdBlur, CmdBrighten, CmdCombine, CmdContrast, CmdCrop, CmdExif, CmdFlip, CmdHuerotate, CmdInvert, CmdResize, CmdResizeFilter, CmdText, CmdUnsharpen};
 use crate::Commands;
@@ -547,10 +547,10 @@ fn create_cmd_combine(matches: ArgMatches<'static>, arg: &str) -> CmdCombine {
     };
 
     let path_buf = Path::new(image).to_path_buf();
-    let thumbnail = Thumbnail::load(&path_buf);
+    let thumbnail = Thumbnail::load(path_buf);
 
     let static_thumbnail = match thumbnail {
-        Ok(mut t) => t.to_static_copy(),
+        Ok(mut t) => t.clone_static_copy(),
         Err(_e) => panic!("ERROR: the supplied image in --{} was not found", arg)
     };
 
