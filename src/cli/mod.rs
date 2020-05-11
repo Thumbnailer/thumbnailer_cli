@@ -7,7 +7,7 @@ use thumbnailer::{
 
 use crate::commands::{
     CmdBlur, CmdBrighten, CmdCombine, CmdContrast, CmdCrop, CmdExif, CmdFlip, CmdHuerotate,
-    CmdInvert, CmdResize, CmdResizeFilter, CmdRotate, CmdText, CmdUnsharpen,
+    CmdInvert, CmdResize, CmdResizeFilter, CmdRotate, CmdText, CmdUnsharpen, Command,
 };
 use crate::Commands;
 
@@ -42,6 +42,7 @@ const ARG_TEXT_TR: &str = "text_tr";
 const ARG_TEXT_BL: &str = "text_bl";
 const ARG_TEXT_BR: &str = "text_br";
 const ARG_UNSHARPEN: &str = "unsharpen";
+const ARG_PRESET: &str = "preset";
 
 const GROUP_COMBINE: &str = "Combine";
 const GROUP_CROP: &str = "Crop";
@@ -53,6 +54,8 @@ const GROUP_TEXT: &str = "Text";
 const VAL_COMBINE: [&str; 3] = ["IMAGE_PATH", "x_offset", "y_offset"];
 const VAL_RESIZE: [&str; 3] = ["nwidth", "nheight", "exact"];
 const VAL_TEXT: [&str; 3] = ["text", "x_offset", "y_offset"];
+
+const PRESETS: [&str; 3] = ["app_copyright", "full_hd", "background"];
 
 /// This function bundles the definition of the command line arguments as provided by clap
 ///
@@ -247,6 +250,13 @@ pub fn get_matches() -> clap::ArgMatches<'static> {
             .help("Performs an unsharpen mask on the supplied image(s). sigma as f32 is the amount to unsharpen the image by. threshold as i32 controls the minimal brightness change or how far apart adjacent tonal values have to be before the filter does anything.")
             .takes_value(true))
 
+        .arg(Arg::with_name(ARG_PRESET)
+            .long(ARG_PRESET)
+            .value_name("name")
+            .possible_values(&PRESETS)
+            .help("Performs predefined commands in a given order, based on the preset, which was chosen.")
+            .takes_value(true))
+
         .get_matches()
     //.get_matches_from(vec![env!("CARGO_PKG_NAME"), "in.png" ,"--combine_tl", "C:\\Users\\p372094\\IdeaProjects\\thumbnailer_cli\\img\\test.JPG", "40", "30"])
 }
@@ -299,13 +309,13 @@ pub fn get_matches() -> clap::ArgMatches<'static> {
 /// const ARG_TEXT_BR: &str = "text_br";
 /// const ARG_UNSHARPEN: &str = "unsharpen";
 ///
-/// let matches = App::new("MyApp")
+/// let matches = App::new(env!("CARGO_PKG_NAME"))
 ///     .arg(Arg::with_name(ARG_BLUR)
 ///         .long(ARG_BLUR)
 ///         .value_name("sigma")
 ///         .help("Performs a Gaussian blur on the supplied image(s). sigma as f32 is a measure of how much to blur by.")
 ///         .takes_value(true))
-///     .get_matches_from(vec!["MyApp", "--blur", "5.8"]);
+///     .get_matches_from(vec![env!("CARGO_PKG_NAME"), "--blur", "5.8"]);
 ///
 /// let cmd_list = read_commands(matches);
 /// for i in 0..cmd_list.commands.len() {
@@ -644,6 +654,12 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         cmd_list.commands.push(Box::new(unsharpen));
     }
 
+    if matches.is_present(ARG_PRESET) {
+        cmd_list
+            .commands
+            .append(&mut create_cmd_list_preset(matches.clone()));
+    }
+
     cmd_list.commands.sort();
     cmd_list
 }
@@ -662,14 +678,14 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
 /// use clap::{App, Arg, ArgMatches};
 /// use crate::commands::CmdCombine;
 ///
-/// pub use thumbnailer::BoxPosition;
+/// use thumbnailer::BoxPosition;
 ///
 /// const ARG_COMBINE_TL: &str = "combine_tl";
 /// const ARG_COMBINE_TR: &str = "combine_tr";
 /// const ARG_COMBINE_BL: &str = "combine_bl";
 /// const ARG_COMBINE_BR: &str = "combine_br";
 ///
-/// let matches = App::new("MyApp")
+/// let matches = App::new(env!("CARGO_PKG_NAME"))
 ///     .arg(Arg::with_name(ARG_COMBINE_TL)
 ///         .long(ARG_COMBINE_TL)
 ///         .value_name("IMAGE_PATH")
@@ -677,7 +693,7 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
 ///         .value_name("y_offset")
 ///         .help("Inserts a photo, such as a logo given as path, into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the TOP LEFT corner of the photo.")
 ///         .takes_value(true))
-///     .get_matches_from(vec!["MyApp", "--combine_tl", "img\test.JPG", "5", "10"]);
+///     .get_matches_from(vec![env!("CARGO_PKG_NAME"), "--combine_tl", "img\test.JPG", "5", "10"]);
 ///
 /// let combine = create_cmd_combine(matches, "combine_tl");
 /// combine.print();
@@ -739,7 +755,7 @@ fn create_cmd_combine(matches: ArgMatches<'static>, arg: &str) -> CmdCombine {
 /// use clap::{App, Arg, ArgMatches};
 /// use crate::commands::CmdResizeFilter;
 ///
-/// pub use thumbnailer::{ResampleFilter, Resize};
+/// use thumbnailer::{ResampleFilter, Resize};
 ///
 /// const ARG_RESIZE_N: &str = "resize_n";
 /// const ARG_RESIZE_T: &str = "resize_t";
@@ -747,7 +763,7 @@ fn create_cmd_combine(matches: ArgMatches<'static>, arg: &str) -> CmdCombine {
 /// const ARG_RESIZE_G: &str = "resize_g";
 /// const ARG_RESIZE_L: &str = "resize_l";
 ///
-/// let matches = App::new("MyApp")
+/// let matches = App::new(env!("CARGO_PKG_NAME"))
 ///     .arg(Arg::with_name(ARG_RESIZE_N)
 ///         .long(ARG_RESIZE_N)
 ///         .value_name("width")
@@ -755,7 +771,7 @@ fn create_cmd_combine(matches: ArgMatches<'static>, arg: &str) -> CmdCombine {
 ///         .value_name("exact")
 ///         .help("Resize the supplied image(s) to the specified dimensions. nwidth and nheight are the new dimensions. exact as bool forces the exact resizing, but the aspect ratio may change. Nearest is the used filter (Nearest Neighbor Filter). To resize only by one dimension, set the other to 0.")
 ///         .takes_value(true))
-///     .get_matches_from(vec!["MyApp", "--resize_n", "400", "300", "false"]);
+///     .get_matches_from(vec![env!("CARGO_PKG_NAME"), "--resize_n", "400", "300", "false"]);
 ///
 /// let resize_filter = create_cmd_resize_filter(matches, "resize_n");
 /// resize_filter.print();
@@ -820,14 +836,14 @@ fn create_cmd_resize_filter(matches: ArgMatches<'static>, arg: &str) -> CmdResiz
 /// use clap::{App, Arg, ArgMatches};
 /// use crate::commands::CmdText;
 ///
-/// pub use thumbnailer::BoxPosition;
+/// use thumbnailer::BoxPosition;
 ///
 /// const ARG_TEXT_TL: &str = "text_tl";
 /// const ARG_TEXT_TR: &str = "text_tr";
 /// const ARG_TEXT_BL: &str = "text_bl";
 /// const ARG_TEXT_BR: &str = "text_br";
 ///
-/// let matches = App::new("MyApp")
+/// let matches = App::new(env!("CARGO_PKG_NAME"))
 ///     .arg(Arg::with_name(ARG_TEXT_TL)
 ///         .long(ARG_TEXT_TL)
 ///         .value_name("text")
@@ -835,7 +851,7 @@ fn create_cmd_resize_filter(matches: ArgMatches<'static>, arg: &str) -> CmdResiz
 ///         .value_name("y_offset")
 ///         .help("Inserts a text as String into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the TOP LEFT corner of the photo.")
 ///         .takes_value(true))
-///     .get_matches_from(vec!["MyApp", "--text_tl", "test", "5", "10"]);
+///     .get_matches_from(vec![env!("CARGO_PKG_NAME"), "--text_tl", "test", "5", "10"]);
 ///
 /// let text = create_cmd_text(matches, "text_tl");
 /// text.print();
@@ -867,4 +883,79 @@ fn create_cmd_text(matches: ArgMatches<'static>, arg: &str) -> CmdText {
     };
 
     CmdText::new(index, text, position)
+}
+
+/// This function is parsing the given preset
+///
+/// Returns a new `Vec<Box<dyn Command>>` list
+///
+/// # Arguments
+///
+/// * `matches` - The `ArgMatches` struct from clap, containing the provided arguments
+///
+/// # Examples
+/// ```
+/// use clap::{App, Arg, ArgMatches};
+/// use crate::commands::{
+///     CmdBlur, CmdBrighten, CmdCombine, CmdContrast, CmdCrop, CmdExif, CmdFlip, CmdHuerotate,
+///     CmdInvert, CmdResize, CmdResizeFilter, CmdRotate, CmdText, CmdUnsharpen, Command,
+/// };
+///
+/// use thumbnailer::{
+///     BoxPosition, Crop, Exif, Orientation, ResampleFilter, Resize, Rotation, Thumbnail,
+/// };
+///
+/// const ARG_PRESET: &str = "preset";
+/// const PRESETS: [&str; 3] = ["app_copyright", "web_copyright", "background"];
+///
+/// let matches = App::new(env!("CARGO_PKG_NAME"))
+///     .arg(Arg::with_name(ARG_PRESET)
+///         .long(ARG_PRESET)
+///         .value_name("name")
+///         .possible_values(&PRESETS)
+///         .help("Performs predefined commands in a given order, based on the preset, which was chosen.")
+///         .takes_value(true))
+///     .get_matches_from(vec![env!("CARGO_PKG_NAME"), "--preset", "app_copyright"]);
+///
+/// let mut cmd_list = Commands { commands: vec![] };
+/// cmd_list
+///     .commands
+///     .append(&mut create_cmd_list_preset(matches.clone()));
+/// ```
+fn create_cmd_list_preset(matches: ArgMatches<'static>) -> Vec<Box<dyn Command>> {
+    let mut cmd_list = Commands { commands: vec![] };
+
+    let index = matches.index_of(ARG_PRESET).unwrap() as u32;
+    let name = matches.value_of(ARG_PRESET).unwrap();
+    match name {
+        _ if name == PRESETS[0] => {
+            cmd_list
+                .commands
+                .push(Box::new(CmdCrop::new(index, Crop::Ratio(4.0, 3.0))));
+            cmd_list
+                .commands
+                .push(Box::new(CmdResize::new(index, Resize::ExactBox(600, 450))));
+            cmd_list.commands.push(Box::new(CmdText::new(
+                index,
+                String::from("(c) thumbnailer"),
+                BoxPosition::BottomRight(580, 435),
+            )));
+        }
+        _ if name == PRESETS[1] => {
+            cmd_list
+                .commands
+                .push(Box::new(CmdCrop::new(index, Crop::Ratio(16.0, 9.0))));
+            cmd_list
+                .commands
+                .push(Box::new(CmdResize::new(index, Resize::Height(1080))));
+        }
+        _ if name == PRESETS[2] => {
+            cmd_list
+                .commands
+                .push(Box::new(CmdBrighten::new(index, -50)));
+            cmd_list.commands.push(Box::new(CmdBlur::new(index, 10.0)));
+        }
+        _ => {}
+    }
+    cmd_list.commands
 }

@@ -624,7 +624,7 @@ dependencies = [
 [[package]]
 name = "thumbnailer"
 version = "0.1.0"
-source = "git+https://github.com/Thumbnailer/thumbnailer.git?branch=wattenre#0626790edf21694bf1a352ee07b2dcd9275b7335"
+source = "git+https://github.com/Thumbnailer/thumbnailer.git#1bc80545350f448f06dfeaaf3793520adcf3069b"
 dependencies = [
  "globwalk 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "image 0.23.4 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -639,7 +639,7 @@ version = "0.1.0"
 dependencies = [
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "image 0.23.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "thumbnailer 0.1.0 (git+https://github.com/Thumbnailer/thumbnailer.git?branch=wattenre)",
+ "thumbnailer 0.1.0 (git+https://github.com/Thumbnailer/thumbnailer.git)",
 ]
 
 [[package]]
@@ -779,7 +779,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum strsim 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
 "checksum textwrap 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d326610f408c7a4eb6f51c37c330e496b08506c9457c9d34287ecc38809fb060"
 "checksum thread_local 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "d40c6d1b69745a6ec6fb1ca717914848da4b44ae29d9b3080cbee91d72a69b14"
-"checksum thumbnailer 0.1.0 (git+https://github.com/Thumbnailer/thumbnailer.git?branch=wattenre)" = "<none>"
+"checksum thumbnailer 0.1.0 (git+https://github.com/Thumbnailer/thumbnailer.git)" = "<none>"
 "checksum tiff 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "002351e428db1eb1d8656d4ca61947c3519ac3191e1c804d4600cd32093b77ad"
 "checksum unicode-width 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)" = "caaa9d531767d1ff2150b9332433f32a24622147e5ebb1f26409d5da67afd479"
 "checksum vec_map 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)" = "05c78687fb1a80548ae3250346c3db86a80a7cdd77bda190189f2d0a0987c81a"
