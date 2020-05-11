@@ -39,13 +39,6 @@ const ARG_TEXT_BR: &str = "text_br";
 const ARG_UNSHARPEN: &str = "unsharpen";
 const ARG_PRESET: &str = "preset";
 
-const GROUP_COMBINE: &str = "Combine";
-const GROUP_CROP: &str = "Crop";
-const GROUP_FLIP: &str = "Flip";
-const GROUP_RESIZE: &str = "Resize";
-const GROUP_ROTATE: &str = "Rotate";
-const GROUP_TEXT: &str = "Text";
-
 const VAL_COMBINE: [&str; 3] = ["IMAGE_PATH", "x_offset", "y_offset"];
 const VAL_RESIZE: [&str; 3] = ["nwidth", "nheight", "exact"];
 const VAL_TEXT: [&str; 3] = ["text", "x_offset", "y_offset"];
