@@ -449,7 +449,7 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
 ///         .value_name("y_offset")
 ///         .help("Inserts a photo, such as a logo given as path, into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the TOP LEFT corner of the photo.")
 ///         .takes_value(true))
-///     .get_matches_from(vec![env!("CARGO_PKG_NAME"), "--combine_tl", "img\test.JPG", "5", "10"]);
+///     .get_matches_from(vec![env!("CARGO_PKG_NAME"), "resources\tests\test.jpg", "--combine_tl", "resources\tests\test_small.jpg", "5", "5"]);
 ///
 /// let combine = create_cmd_combine(matches, "combine_tl");
 /// combine.print();
@@ -527,7 +527,7 @@ fn create_cmd_combine(matches: ArgMatches<'static>, arg: &str) -> CmdCombine {
 ///         .value_name("exact")
 ///         .help("Resize the supplied image(s) to the specified dimensions. nwidth and nheight are the new dimensions. exact as bool forces the exact resizing, but the aspect ratio may change. Nearest is the used filter (Nearest Neighbor Filter). To resize only by one dimension, set the other to 0.")
 ///         .takes_value(true))
-///     .get_matches_from(vec![env!("CARGO_PKG_NAME"), "--resize_n", "400", "300", "false"]);
+///     .get_matches_from(vec![env!("CARGO_PKG_NAME"), "resources\tests\test.jpg", "--resize_n", "400", "300", "false"]);
 ///
 /// let resize_filter = create_cmd_resize_filter(matches, "resize_n");
 /// resize_filter.print();
@@ -607,7 +607,7 @@ fn create_cmd_resize_filter(matches: ArgMatches<'static>, arg: &str) -> CmdResiz
 ///         .value_name("y_offset")
 ///         .help("Inserts a text as String into the supplied image(s). x_offset as u32 is the horizontal and y-offset as u32 vertical offset to the TOP LEFT corner of the photo.")
 ///         .takes_value(true))
-///     .get_matches_from(vec![env!("CARGO_PKG_NAME"), "--text_tl", "test", "5", "10"]);
+///     .get_matches_from(vec![env!("CARGO_PKG_NAME"), "resources\tests\test.jpg", "--text_tl", "test", "5", "10"]);
 ///
 /// let text = create_cmd_text(matches, "text_tl");
 /// text.print();
@@ -671,7 +671,7 @@ fn create_cmd_text(matches: ArgMatches<'static>, arg: &str) -> CmdText {
 ///         .possible_values(&PRESETS)
 ///         .help("Performs predefined commands in a given order, based on the preset, which was chosen.")
 ///         .takes_value(true))
-///     .get_matches_from(vec![env!("CARGO_PKG_NAME"), "--preset", "app_copyright"]);
+///     .get_matches_from(vec![env!("CARGO_PKG_NAME"), "resources\tests\test.jpg", "--preset", "app_copyright"]);
 ///
 /// let mut cmd_list = Commands { commands: vec![] };
 /// cmd_list
