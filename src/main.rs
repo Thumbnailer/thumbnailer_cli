@@ -8,16 +8,9 @@ use thumbnailer::{GenericThumbnail, Target, Thumbnail};
 use thumbnailer::target::TargetFormat;
 
 use crate::cli::{get_matches, NAME_FILE_IN, NAME_FILE_OUT, read_commands};
-use crate::commands::Command;
 
 pub mod cli;
 pub mod commands;
-
-/// Representation of the command-list as a struct
-pub struct Commands {
-    /// Contains the implementors of `Command` to apply a list of operations, which are provided by `thumbnailer`, on the supplied image(s)
-    commands: Vec<Box<dyn Command>>,
-}
 
 /// Main logic of the thumbnailer command line interface (`thumbnailer_cli`)
 ///
@@ -55,5 +48,10 @@ fn main() {
         _ => TargetFormat::Jpeg,
     };
     let target = Target::new(format, Path::new(&file_out).to_path_buf());
-    image.apply_store(&target);
+    image.apply_store(&target).unwrap_or_else(|_| {
+        panic!(
+            "‼→ ERROR in {}: failed to store the image to the supplied path ←‼",
+            NAME_FILE_OUT
+        )
+    });
 }
