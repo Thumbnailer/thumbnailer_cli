@@ -69,7 +69,7 @@ impl Command for CmdText {
     /// ```
     fn print(&self) -> String {
         format!(
-            "► {:02}. text:\t\t{:?}\ttext: {}",
+            "► {:02}. text:\t\t{:?}\ttext = {}",
             self.index, self.position, self.text
         )
     }

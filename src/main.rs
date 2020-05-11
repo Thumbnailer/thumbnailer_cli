@@ -16,8 +16,6 @@ pub mod commands;
 ///
 /// Run `thumbnailer_cli.exe -h` to view the help and learn about its functionality.
 /// Run `thumbnailer_cli.exe -V` to print the version information.
-//  .\target\debug\thumbnailer_cli.exe -h
-//  .\target\debug\thumbnailer_cli.exe C:\Users\p372094\IdeaProjects\thumbnailer_cli\img\test.JPG C:\Users\p372094\IdeaProjects\thumbnailer_cli\img\result.png --blur 6 --brighten 15
 fn main() {
     let matches = get_matches();
 

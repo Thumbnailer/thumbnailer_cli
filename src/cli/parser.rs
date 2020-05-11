@@ -283,14 +283,14 @@ pub fn read_commands(matches: ArgMatches<'static>) -> Commands {
         });
 
         let size;
-        if height == 0 {
+        if exact {
+            size = Resize::ExactBox(width, height);
+        } else if height == 0 {
             size = Resize::Width(width);
         } else if width == 0 {
             size = Resize::Height(height);
-        } else if !exact {
-            size = Resize::BoundingBox(width, height);
         } else {
-            size = Resize::ExactBox(width, height);
+            size = Resize::BoundingBox(width, height);
         }
         cmd_list
             .commands
